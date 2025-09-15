@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Pago - Wandy Soluciones{% endblock %}
+{% block page_title %}Nuevo Pago{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Registrar Nuevo Pago</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('pagos') }}">Pagos</a></li>
+                    <li class="breadcrumb-item active">Nuevo Pago</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('pagos') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<form method="POST" class="needs-validation" novalidate>
+    <div class="row">
+        <!-- Selección de Cliente y Préstamo -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-2"></i>Selección de Cliente y Préstamo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="cliente_id" class="form-label">Cliente *</label>
+                        <select class="form-select" id="cliente_id" name="cliente_id" required onchange="cargarPrestamos()">
+                            <option value="">Seleccionar cliente</option>
+                            {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">
+                                {{ cliente.nombre }} {{ cliente.apellidos }} - {{ cliente.documento }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor seleccione un cliente.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="prestamo_id" class="form-label">Préstamo *</label>
+                        <select class="form-select" id="prestamo_id" name="prestamo_id" required onchange="cargarCuotas()" disabled>
+                            <option value="">Primero seleccione un cliente</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor seleccione un préstamo.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cuota_id" class="form-label">Cuota a Pagar *</label>
+                        <select class="form-select" id="cuota_id" name="cuota_id" required onchange="calcularMontoPendiente()" disabled>
+                            <option value="">Primero seleccione un préstamo</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor seleccione una cuota.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Pago -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-money-bill-wave me-2"></i>Información del Pago
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="monto_pagado" class="form-label">Monto a Pagar (RD$) *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">RD$</span>
+                            <input type="number" class="form-control" id="monto_pagado" name="monto_pagado" 
+                                   step="0.01" min="0" required readonly>
+                        </div>
+                        <div class="invalid-feedback">
+                            Por favor ingrese un monto válido.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="monto_capital" class="form-label">Monto Capital (RD$) *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">RD$</span>
+                            <input type="number" class="form-control" id="monto_capital" name="monto_capital" 
+                                   step="0.01" min="0" required readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="monto_interes" class="form-label">Monto Interés (RD$) *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">RD$</span>
+                            <input type="number" class="form-control" id="monto_interes" name="monto_interes" 
+                                   step="0.01" min="0" required readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tipo_pago" class="form-label">Tipo de Pago *</label>
+                        <select class="form-select" id="tipo_pago" name="tipo_pago" required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="Normal">Normal</option>
+                            <option value="Parcial">Parcial</option>
+                            <option value="Adelantado">Adelantado</option>
+                            <option value="Extraordinario">Extraordinario</option>
+                            <option value="AbonoCapital">Abono al Capital</option>
+                            <option value="SoloIntereses">Solo Intereses</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor seleccione un tipo de pago.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="fecha_pago" class="form-label">Fecha de Pago *</label>
+                        <input type="date" class="form-control" id="fecha_pago" name="fecha_pago" required>
+                        <div class="invalid-feedback">
+                            Por favor seleccione una fecha.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Resumen de la Cuota -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Resumen de la Cuota
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="resumen_cuota">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                            <p>Seleccione una cuota para ver el resumen</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit me-2"></i>Información Adicional
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="referencia" class="form-label">Número de Referencia</label>
+                        <input type="text" class="form-control" id="referencia" name="referencia" 
+                               placeholder="Número de transferencia, cheque, etc.">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" rows="3" 
+                                  placeholder="Notas adicionales sobre el pago"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <div>
+                            <button type="submit" class="btn btn-primary" id="btn_registrar" disabled>
+                                <i class="fas fa-check me-2"></i>Registrar Pago
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Establecer fecha por defecto (hoy)
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const fechaFormateada = today.toISOString().split('T')[0];
+    document.getElementById('fecha_pago').value = fechaFormateada;
+});
+
+// Función para cargar préstamos del cliente seleccionado
+function cargarPrestamos() {
+    const clienteId = document.getElementById('cliente_id').value;
+    const prestamoSelect = document.getElementById('prestamo_id');
+    const cuotaSelect = document.getElementById('cuota_id');
+    const btnRegistrar = document.getElementById('btn_registrar');
+    
+    // Limpiar selecciones
+    prestamoSelect.innerHTML = '<option value="">Cargando préstamos...</option>';
+    prestamoSelect.disabled = true;
+    cuotaSelect.innerHTML = '<option value="">Primero seleccione un préstamo</option>';
+    cuotaSelect.disabled = true;
+    btnRegistrar.disabled = true;
+    
+    if (!clienteId) {
+        prestamoSelect.innerHTML = '<option value="">Primero seleccione un cliente</option>';
+        prestamoSelect.disabled = true;
+        return;
+    }
+    
+    // Llamada AJAX para cargar los préstamos del cliente
+    fetch(`/api/clientes/${clienteId}/prestamos-activos`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                prestamoSelect.innerHTML = '<option value="">Seleccionar préstamo</option>';
+                data.data.forEach(prestamo => {
+                    const option = document.createElement('option');
+                    option.value = prestamo.prestamo_id;
+                    option.textContent = `Préstamo #${prestamo.prestamo_id} - RD$ ${prestamo.monto.toLocaleString()} - ${prestamo.cuotas_pendientes.length} cuotas pendientes`;
+                    option.setAttribute('data-prestamo', JSON.stringify(prestamo));
+                    prestamoSelect.appendChild(option);
+                });
+                prestamoSelect.disabled = false;
+            } else {
+                prestamoSelect.innerHTML = '<option value="">Este cliente no tiene préstamos activos</option>';
+                prestamoSelect.disabled = true;
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar préstamos:', error);
+            prestamoSelect.innerHTML = '<option value="">Error al cargar préstamos</option>';
+            prestamoSelect.disabled = true;
+        });
+}
+
+// Función para cargar cuotas del préstamo seleccionado
+function cargarCuotas() {
+    const prestamoSelect = document.getElementById('prestamo_id');
+    const cuotaSelect = document.getElementById('cuota_id');
+    const btnRegistrar = document.getElementById('btn_registrar');
+    
+    cuotaSelect.innerHTML = '<option value="">Cargando cuotas...</option>';
+    cuotaSelect.disabled = true;
+    btnRegistrar.disabled = true;
+    
+    if (!prestamoSelect.value) {
+        cuotaSelect.innerHTML = '<option value="">Primero seleccione un préstamo</option>';
+        cuotaSelect.disabled = true;
+        return;
+    }
+    
+    const prestamoOption = prestamoSelect.options[prestamoSelect.selectedIndex];
+    const prestamoData = JSON.parse(prestamoOption.getAttribute('data-prestamo'));
+    
+    if (prestamoData.cuotas_pendientes.length > 0) {
+        cuotaSelect.innerHTML = '<option value="">Seleccionar cuota</option>';
+        prestamoData.cuotas_pendientes.forEach(cuota => {
+            const option = document.createElement('option');
+            option.value = cuota.cuota_id;
+            option.textContent = `Cuota #${cuota.numero_cuota} - RD$ ${cuota.monto_total.toLocaleString()} - Vence: ${formatearFecha(cuota.fecha_vencimiento)}`;
+            option.setAttribute('data-cuota', JSON.stringify(cuota));
+            cuotaSelect.appendChild(option);
+        });
+        cuotaSelect.disabled = false;
+    } else {
+        cuotaSelect.innerHTML = '<option value="">Este préstamo no tiene cuotas pendientes</option>';
+        cuotaSelect.disabled = true;
+    }
+}
+
+// Función para calcular monto pendiente y llenar campos
+function calcularMontoPendiente() {
+    const cuotaSelect = document.getElementById('cuota_id');
+    const montoPagadoInput = document.getElementById('monto_pagado');
+    const montoCapitalInput = document.getElementById('monto_capital');
+    const montoInteresInput = document.getElementById('monto_interes');
+    const btnRegistrar = document.getElementById('btn_registrar');
+    
+    if (cuotaSelect.value) {
+        const cuotaOption = cuotaSelect.options[cuotaSelect.selectedIndex];
+        const cuotaData = JSON.parse(cuotaOption.getAttribute('data-cuota'));
+        
+        // Llenar campos con los datos de la cuota
+        montoPagadoInput.value = cuotaData.monto_total;
+        montoCapitalInput.value = cuotaData.monto_capital;
+        montoInteresInput.value = cuotaData.monto_interes;
+        
+        // Habilitar botón de registro
+        btnRegistrar.disabled = false;
+        
+        // Mostrar resumen de la cuota
+        mostrarResumenCuota(cuotaData);
+    }
+}
+
+// Función para mostrar resumen de la cuota
+function mostrarResumenCuota(cuotaData) {
+    const resumenDiv = document.getElementById('resumen_cuota');
+    const fechaVenc = new Date(cuotaData.fecha_vencimiento);
+    const hoy = new Date();
+    const diasAtraso = Math.max(0, Math.floor((hoy - fechaVenc) / (1000 * 60 * 60 * 24)));
+    
+    let estadoCuota = 'Al día';
+    let colorEstado = 'success';
+    
+    if (diasAtraso > 0) {
+        estadoCuota = `${diasAtraso} días de atraso`;
+        colorEstado = diasAtraso > 30 ? 'danger' : 'warning';
+    }
+    
+    resumenDiv.innerHTML = `
+        <div class="row">
+            <div class="col-6">
+                <p class="mb-1"><strong>Monto de la Cuota:</strong></p>
+                <p class="mb-1"><strong>Capital:</strong></p>
+                <p class="mb-1"><strong>Interés:</strong></p>
+                <p class="mb-1"><strong>Fecha de Vencimiento:</strong></p>
+                <p class="mb-1"><strong>Estado:</strong></p>
+                <p class="mb-1"><strong>Días de Atraso:</strong></p>
+            </div>
+            <div class="col-6 text-end">
+                <p class="mb-1 text-primary">RD$ ${cuotaData.monto_total.toLocaleString()}</p>
+                <p class="mb-1 text-success">RD$ ${cuotaData.monto_capital.toLocaleString()}</p>
+                <p class="mb-1 text-info">RD$ ${cuotaData.monto_interes.toLocaleString()}</p>
+                <p class="mb-1 text-info">${formatearFecha(cuotaData.fecha_vencimiento)}</p>
+                <p class="mb-1"><span class="badge bg-${colorEstado}">${estadoCuota}</span></p>
+                <p class="mb-1 text-${diasAtraso > 0 ? 'danger' : 'success'}">${diasAtraso}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Función para formatear fecha
+function formatearFecha(fechaString) {
+    const fecha = new Date(fechaString);
+    return fecha.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+}
+
+// Actualizar monto máximo cuando cambie el tipo de pago
+document.getElementById('tipo_pago').addEventListener('change', function() {
+    const tipoPago = this.value;
+    const montoPagadoInput = document.getElementById('monto_pagado');
+    const cuotaSelect = document.getElementById('cuota_id');
+    
+    if (tipoPago === 'Parcial' && cuotaSelect.value) {
+        const cuotaOption = cuotaSelect.options[cuotaSelect.selectedIndex];
+        const cuotaData = JSON.parse(cuotaOption.getAttribute('data-cuota'));
+        montoPagadoInput.max = cuotaData.monto_total;
+        montoPagadoInput.placeholder = `Máximo: RD$ ${cuotaData.monto_total.toLocaleString()}`;
+        montoPagadoInput.readOnly = false;
+    } else if (tipoPago === 'Normal') {
+        const cuotaOption = cuotaSelect.options[cuotaSelect.selectedIndex];
+        if (cuotaOption.value) {
+            const cuotaData = JSON.parse(cuotaOption.getAttribute('data-cuota'));
+            montoPagadoInput.value = cuotaData.monto_total;
+            montoPagadoInput.max = cuotaData.monto_total;
+            montoPagadoInput.readOnly = true;
+        }
+    }
+});
+</script>
+{% endblock %}

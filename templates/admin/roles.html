@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Administración de Roles - Wandy Soluciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-user-tag text-primary me-2"></i>
+                    Administración de Roles
+                </h1>
+                
+                <a href="{{ url_for('nuevo_rol') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>
+                    Nuevo Rol
+                </a>
+            </div>
+
+            {% if roles %}
+                <div class="row">
+                    {% for rol in roles %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 role-card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-user-shield me-2"></i>
+                                        {{ rol.nombre }}
+                                    </h5>
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="{{ url_for('editar_rol', rol_id=rol.id) }}">
+                                                    <i class="fas fa-edit me-2"></i>
+                                                    Editar
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="verPermisos({{ rol.id }})">
+                                                    <i class="fas fa-key me-2"></i>
+                                                    Ver Permisos
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" onclick="eliminarRol({{ rol.id }}, '{{ rol.nombre }}')">
+                                                    <i class="fas fa-trash me-2"></i>
+                                                    Eliminar
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <p class="card-text text-muted mb-3">
+                                        {{ rol.descripcion or 'Sin descripción' }}
+                                    </p>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Nivel de Acceso:</label>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                <div class="progress-bar bg-{{ 'success' if rol.nivel_acceso >= 4 else 'warning' if rol.nivel_acceso >= 3 else 'info' if rol.nivel_acceso >= 2 else 'secondary' }}" 
+                                                     style="width: {{ (rol.nivel_acceso / 4) * 100 }}%"></div>
+                                            </div>
+                                            <span class="badge bg-{{ 'success' if rol.nivel_acceso >= 4 else 'warning' if rol.nivel_acceso >= 3 else 'info' if rol.nivel_acceso >= 2 else 'secondary' }}">
+                                                {{ rol.nivel_acceso }}/4
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Permisos Asignados:</label>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% if rol.permisos %}
+                                                {% for permiso in rol.permisos[:5] %}
+                                                    <span class="badge bg-primary">{{ permiso.nombre }}</span>
+                                                {% endfor %}
+                                                {% if rol.permisos|length > 5 %}
+                                                    <span class="badge bg-secondary">+{{ rol.permisos|length - 5 }} más</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">Sin permisos</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Usuarios con este Rol:</label>
+                                        <div class="d-flex align-items-center">
+                                            <i class="fas fa-users me-2 text-muted"></i>
+                                            <span class="text-muted">
+                                                {{ rol.usuarios|length if rol.usuarios else 0 }} usuario(s)
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card-footer bg-transparent">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Creado: {{ rol.id }} (ID)
+                                        </small>
+                                        
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ url_for('editar_rol', rol_id=rol.id) }}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-edit me-1"></i>
+                                                Editar
+                                            </a>
+                                            <button class="btn btn-outline-info btn-sm" onclick="verPermisos({{ rol.id }})">
+                                                <i class="fas fa-key me-1"></i>
+                                                Permisos
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-user-tag fa-3x text-muted"></i>
+                    </div>
+                    <h5 class="text-muted">No hay roles configurados</h5>
+                    <p class="text-muted">Comienza creando el primer rol del sistema.</p>
+                    <a href="{{ url_for('nuevo_rol') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        Crear Primer Rol
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver permisos -->
+<div class="modal fade" id="permisosModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-key me-2"></i>
+                    Permisos del Rol
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="permisosModalBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.role-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.role-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+}
+
+.progress {
+    border-radius: 10px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+}
+
+.card-footer {
+    border-top: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+@media (max-width: 768px) {
+    .role-card .card-footer .d-flex {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .role-card .card-footer .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+function verPermisos(rolId) {
+    // Aquí podrías hacer una llamada AJAX para obtener los permisos del rol
+    // Por ahora, mostraremos un mensaje de ejemplo
+    const modalBody = document.getElementById('permisosModalBody');
+    modalBody.innerHTML = `
+        <div class="text-center py-4">
+            <i class="fas fa-spinner fa-spin fa-2x text-primary mb-3"></i>
+            <p>Cargando permisos del rol...</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('permisosModal'));
+    modal.show();
+    
+    // Simular carga de permisos
+    setTimeout(() => {
+        modalBody.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Esta funcionalidad mostrará todos los permisos asignados al rol seleccionado.
+            </div>
+            <p class="text-muted">
+                En una implementación completa, aquí se mostrarían todos los permisos del rol,
+                con opciones para agregar/quitar permisos y gestionar el acceso.
+            </p>
+        `;
+    }, 1000);
+}
+
+function eliminarRol(rolId, rolNombre) {
+    if (confirm(`¿Estás seguro de que deseas eliminar el rol "${rolNombre}"?\n\nEsta acción no se puede deshacer.`)) {
+        // Aquí iría la lógica para eliminar el rol
+        alert('Funcionalidad de eliminación en desarrollo');
+    }
+}
+
+// Tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

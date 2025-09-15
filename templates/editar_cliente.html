@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Cliente - Wandy Soluciones{% endblock %}
+{% block page_title %}Editar Cliente{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Editar Cliente: {{ cliente.nombre }} {{ cliente.apellidos }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('clientes') }}">Clientes</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('ver_cliente', cliente_id=cliente.id) }}">{{ cliente.nombre }} {{ cliente.apellidos }}</a></li>
+                    <li class="breadcrumb-item active">Editar</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('ver_cliente', cliente_id=cliente.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Información del Cliente
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información Personal</h6>
+                            
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" 
+                                       value="{{ cliente.nombre }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="apellidos" class="form-label">Apellidos *</label>
+                                <input type="text" class="form-control" id="apellidos" name="apellidos" 
+                                       value="{{ cliente.apellidos }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="apodo" class="form-label">Apodo</label>
+                                <input type="text" class="form-control" id="apodo" name="apodo" 
+                                       value="{{ cliente.apodo or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="documento" class="form-label">Documento de Identidad *</label>
+                                <input type="text" class="form-control" id="documento" name="documento" 
+                                       value="{{ cliente.documento }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="nacionalidad" class="form-label">Nacionalidad *</label>
+                                <input type="text" class="form-control" id="nacionalidad" name="nacionalidad" 
+                                       value="{{ cliente.nacionalidad }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" 
+                                       value="{{ cliente.fecha_nacimiento.strftime('%Y-%m-%d') if cliente.fecha_nacimiento else '' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información de Contacto</h6>
+                            
+                            <div class="mb-3">
+                                <label for="sexo" class="form-label">Sexo *</label>
+                                <select class="form-select" id="sexo" name="sexo" required>
+                                    <option value="">Seleccionar sexo</option>
+                                    <option value="Masculino" {{ 'selected' if cliente.sexo == 'Masculino' }}>Masculino</option>
+                                    <option value="Femenino" {{ 'selected' if cliente.sexo == 'Femenino' }}>Femenino</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="estado_civil" class="form-label">Estado Civil *</label>
+                                <select class="form-select" id="estado_civil" name="estado_civil" required>
+                                    <option value="">Seleccionar estado civil</option>
+                                    <option value="Soltero" {{ 'selected' if cliente.estado_civil == 'Soltero' }}>Soltero</option>
+                                    <option value="Casado" {{ 'selected' if cliente.estado_civil == 'Casado' }}>Casado</option>
+                                    <option value="Divorciado" {{ 'selected' if cliente.estado_civil == 'Divorciado' }}>Divorciado</option>
+                                    <option value="Viudo" {{ 'selected' if cliente.estado_civil == 'Viudo' }}>Viudo</option>
+                                    <option value="Unión Libre" {{ 'selected' if cliente.estado_civil == 'Unión Libre' }}>Unión Libre</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="whatsapp" class="form-label">WhatsApp</label>
+                                <input type="text" class="form-control" id="whatsapp" name="whatsapp" 
+                                       value="{{ cliente.whatsapp or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="telefono_principal" class="form-label">Teléfono Principal *</label>
+                                <input type="text" class="form-control" id="telefono_principal" name="telefono_principal" 
+                                       value="{{ cliente.telefono_principal }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="telefono_otro" class="form-label">Teléfono Otro</label>
+                                <input type="text" class="form-control" id="telefono_otro" name="telefono_otro" 
+                                       value="{{ cliente.telefono_otro or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="correo" class="form-label">Correo Electrónico *</label>
+                                <input type="email" class="form-control" id="correo" name="correo" 
+                                       value="{{ cliente.correo }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información de Dirección</h6>
+                            
+                            <div class="mb-3">
+                                <label for="direccion" class="form-label">Dirección *</label>
+                                <input type="text" class="form-control" id="direccion" name="direccion" 
+                                       value="{{ cliente.direccion }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="provincia" class="form-label">Provincia *</label>
+                                <select class="form-select" id="provincia" name="provincia" required>
+                                    <option value="">Seleccionar provincia</option>
+                                    {% for provincia in provincias %}
+                                    <option value="{{ provincia }}" {{ 'selected' if cliente.provincia == provincia }}>{{ provincia }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="municipio" class="form-label">Municipio *</label>
+                                <select class="form-select" id="municipio" name="municipio" required>
+                                    <option value="">Seleccionar municipio</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información Adicional</h6>
+                            
+                            <div class="mb-3">
+                                <label for="sector" class="form-label">Sector *</label>
+                                <input type="text" class="form-control" id="sector" name="sector" 
+                                       value="{{ cliente.sector }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="ruta" class="form-label">Ruta</label>
+                                <input type="text" class="form-control" id="ruta" name="ruta" 
+                                       value="{{ cliente.ruta or '' }}">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="ocupacion" class="form-label">Ocupación *</label>
+                                <input type="text" class="form-control" id="ocupacion" name="ocupacion" 
+                                       value="{{ cliente.ocupacion }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="ingresos" class="form-label">Ingresos Mensuales *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">RD$</span>
+                                    <input type="number" class="form-control" id="ingresos" name="ingresos" 
+                                           value="{{ cliente.ingresos }}" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información Laboral</h6>
+                            
+                            <div class="mb-3">
+                                <label for="situacion_laboral" class="form-label">Situación Laboral *</label>
+                                <select class="form-select" id="situacion_laboral" name="situacion_laboral" required>
+                                    <option value="">Seleccionar situación laboral</option>
+                                    <option value="Empleado" {{ 'selected' if cliente.situacion_laboral == 'Empleado' }}>Empleado</option>
+                                    <option value="Independiente" {{ 'selected' if cliente.situacion_laboral == 'Independiente' }}>Independiente</option>
+                                    <option value="Desempleado" {{ 'selected' if cliente.situacion_laboral == 'Desempleado' }}>Desempleado</option>
+                                    <option value="Estudiante" {{ 'selected' if cliente.situacion_laboral == 'Estudiante' }}>Estudiante</option>
+                                    <option value="Jubilado" {{ 'selected' if cliente.situacion_laboral == 'Jubilado' }}>Jubilado</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="lugar_trabajo" class="form-label">Lugar de Trabajo *</label>
+                                <input type="text" class="form-control" id="lugar_trabajo" name="lugar_trabajo" 
+                                       value="{{ cliente.lugar_trabajo }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Dirección del Trabajo</h6>
+                            
+                            <div class="mb-3">
+                                <label for="direccion_trabajo" class="form-label">Dirección del Trabajo *</label>
+                                <textarea class="form-control" id="direccion_trabajo" name="direccion_trabajo" 
+                                          rows="3" required>{{ cliente.direccion_trabajo }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                        <a href="{{ url_for('ver_cliente', cliente_id=cliente.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const ingresos = parseFloat(document.getElementById('ingresos').value);
+        
+        if (ingresos <= 0) {
+            e.preventDefault();
+            alert('Los ingresos deben ser mayores a 0');
+            return false;
+        }
+    });
+    
+    // Cargar municipios según provincia seleccionada
+    const provincia = document.getElementById('provincia');
+    const municipio = document.getElementById('municipio');
+    
+    // Función para cargar municipios
+    function cargarMunicipios(provinciaSeleccionada, municipioActual = null) {
+        if (provinciaSeleccionada) {
+            fetch(`/api/municipios/${encodeURIComponent(provinciaSeleccionada)}`)
+                .then(response => response.json())
+                .then(municipios => {
+                    municipio.innerHTML = '<option value="">Seleccionar municipio</option>';
+                    municipios.forEach(mun => {
+                        const option = document.createElement('option');
+                        option.value = mun;
+                        option.textContent = mun;
+                        if (municipioActual && mun === municipioActual) {
+                            option.selected = true;
+                        }
+                        municipio.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar municipios:', error);
+                });
+        }
+    }
+    
+    // Cargar municipios al cambiar provincia
+    provincia.addEventListener('change', function() {
+        cargarMunicipios(this.value);
+    });
+    
+    // Cargar municipios iniciales si ya hay una provincia seleccionada
+    if (provincia.value) {
+        cargarMunicipios(provincia.value, '{{ cliente.municipio }}');
+    }
+});
+</script>
+{% endblock %}

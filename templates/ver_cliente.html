@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Cliente - Wandy Soluciones{% endblock %}
+{% block page_title %}Ver Cliente{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">{{ cliente.nombre }} {{ cliente.apellidos }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('clientes') }}">Clientes</a></li>
+                    <li class="breadcrumb-item active">{{ cliente.nombre }} {{ cliente.apellidos }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('editar_cliente', cliente_id=cliente.id) }}" class="btn btn-warning me-2">
+                <i class="fas fa-edit me-2"></i>Editar
+            </a>
+            <a href="{{ url_for('clientes') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Información Personal del Cliente -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>Información Personal
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Nombre:</strong></p>
+                        <p><strong>Apellidos:</strong></p>
+                        <p><strong>Apodo:</strong></p>
+                        <p><strong>Documento:</strong></p>
+                        <p><strong>Nacionalidad:</strong></p>
+                        <p><strong>Fecha de Nacimiento:</strong></p>
+                        <p><strong>Sexo:</strong></p>
+                        <p><strong>Estado Civil:</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <p>{{ cliente.nombre }}</p>
+                        <p>{{ cliente.apellidos }}</p>
+                        <p>{{ cliente.apodo or 'N/A' }}</p>
+                        <p>{{ cliente.documento }}</p>
+                        <p>{{ cliente.nacionalidad }}</p>
+                        <p>{{ cliente.fecha_nacimiento.strftime('%d/%m/%Y') if cliente.fecha_nacimiento else 'N/A' }}</p>
+                        <p>{{ cliente.sexo }}</p>
+                        <p>{{ cliente.estado_civil }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-phone me-2"></i>Información de Contacto
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>WhatsApp:</strong></p>
+                        <p><strong>Teléfono Principal:</strong></p>
+                        <p><strong>Teléfono Otro:</strong></p>
+                        <p><strong>Correo:</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <p>{{ cliente.whatsapp or 'N/A' }}</p>
+                        <p>{{ cliente.telefono_principal }}</p>
+                        <p>{{ cliente.telefono_otro or 'N/A' }}</p>
+                        <p>{{ cliente.correo }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de Dirección -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>Información de Dirección
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
+                        <p><strong>Provincia:</strong> {{ cliente.provincia }}</p>
+                        <p><strong>Municipio:</strong> {{ cliente.municipio }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Sector:</strong> {{ cliente.sector }}</p>
+                        <p><strong>Ruta:</strong> {{ cliente.ruta or 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información Laboral -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-briefcase me-2"></i>Información Laboral
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Ocupación:</strong></p>
+                        <p><strong>Ingresos:</strong></p>
+                        <p><strong>Situación Laboral:</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <p>{{ cliente.ocupacion }}</p>
+                        <p>RD$ {{ cliente.ingresos }}</p>
+                        <p>{{ cliente.situacion_laboral }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-building me-2"></i>Información del Trabajo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Lugar de Trabajo:</strong></p>
+                        <p><strong>Dirección del Trabajo:</strong></p>
+                    </div>
+                    <div class="col-6">
+                        <p>{{ cliente.lugar_trabajo }}</p>
+                        <p>{{ cliente.direccion_trabajo }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Préstamos del Cliente -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-hand-holding-usd me-2"></i>Préstamos del Cliente
+                </h5>
+                <a href="{{ url_for('nuevo_prestamo') }}?cliente_id={{ cliente.id }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-2"></i>Nuevo Préstamo
+                </a>
+            </div>
+            <div class="card-body">
+                {% if prestamos %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Monto</th>
+                                <th>Tasa de Interés</th>
+                                <th>Plazo</th>
+                                <th>Frecuencia</th>
+                                <th>Estado</th>
+                                <th>Fecha Creación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prestamo in prestamos %}
+                            <tr>
+                                <td>#{{ prestamo.id }}</td>
+                                <td>RD$ {{ prestamo.monto }}</td>
+                                <td>{{ prestamo.tasa_interes }}%</td>
+                                <td>{{ prestamo.plazo_meses }} meses</td>
+                                <td>{{ prestamo.frecuencia }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if prestamo.estado == 'Activo' else 'warning' }}">
+                                        {{ prestamo.estado }}
+                                    </span>
+                                </td>
+                                <td>{{ prestamo.fecha_creacion.strftime('%d/%m/%Y') }}</td>
+                                <td>
+                                    <a href="{{ url_for('ver_prestamo', prestamo_id=prestamo.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('editar_prestamo', prestamo_id=prestamo.id) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-hand-holding-usd fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay préstamos registrados</h5>
+                    <p class="text-muted">Este cliente aún no tiene préstamos en el sistema.</p>
+                    <a href="{{ url_for('nuevo_prestamo') }}?cliente_id={{ cliente.id }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Crear Primer Préstamo
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas del Cliente -->
+<div class="row">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ prestamos|length }}</h4>
+                    <p class="mb-0">Total Préstamos</p>
+                </div>
+                <i class="fas fa-hand-holding-usd fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ prestamos|selectattr('estado', 'equalto', 'Activo')|list|length }}</h4>
+                    <p class="mb-0">Préstamos Activos</p>
+                </div>
+                <i class="fas fa-check-circle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ prestamos|selectattr('estado', 'equalto', 'Atrasado')|list|length }}</h4>
+                    <p class="mb-0">Préstamos Atrasados</p>
+                </div>
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ cliente.fecha_creacion.strftime('%d/%m/%Y') }}</h4>
+                    <p class="mb-0">Fecha de Registro</p>
+                </div>
+                <i class="fas fa-calendar fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Aquí se pueden agregar funciones JavaScript adicionales si es necesario
+document.addEventListener('DOMContentLoaded', function() {
+    // Código de inicialización si es necesario
+});
+</script>
+{% endblock %}

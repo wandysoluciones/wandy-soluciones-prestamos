@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+
+{% block title %}Calculadora Financiera - Wandy Soluciones{% endblock %}
+
+{% block page_title %}Calculadora Financiera{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-calculator me-2"></i>Calculadora Financiera</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Pestañas de la calculadora -->
+                    <ul class="nav nav-tabs" id="calculadoraTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="cuota-tab" data-bs-toggle="tab" data-bs-target="#cuota" type="button" role="tab">
+                                <i class="fas fa-money-bill-wave me-2"></i>Cuota Mensual
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tasa-tab" data-bs-toggle="tab" data-bs-target="#tasa" type="button" role="tab">
+                                <i class="fas fa-percentage me-2"></i>Tasa de Interés
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="plazo-tab" data-bs-toggle="tab" data-bs-target="#plazo" type="button" role="tab">
+                                <i class="fas fa-calendar-alt me-2"></i>Plazo del Préstamo
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="monto-tab" data-bs-toggle="tab" data-bs-target="#monto" type="button" role="tab">
+                                <i class="fas fa-dollar-sign me-2"></i>Monto del Préstamo
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="amortizacion-tab" data-bs-toggle="tab" data-bs-target="#amortizacion" type="button" role="tab">
+                                <i class="fas fa-table me-2"></i>Tabla de Amortización
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Contenido de las pestañas -->
+                    <div class="tab-content mt-4" id="calculadoraTabContent">
+                        <!-- Pestaña: Cuota Mensual -->
+                        <div class="tab-pane fade show active" id="cuota" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Calcular Cuota Mensual</h5>
+                                    <form id="formCuota">
+                                        <div class="mb-3">
+                                            <label for="montoCuota" class="form-label">Monto del Préstamo (RD$)</label>
+                                            <input type="number" class="form-control" id="montoCuota" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tasaCuota" class="form-label">Tasa de Interés Mensual (%)</label>
+                                            <input type="number" class="form-control" id="tasaCuota" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="frecuenciaCuota" class="form-label">Frecuencia de Pago</label>
+                                            <select class="form-control" id="frecuenciaCuota" required>
+                                                <option value="Mensual">Mensual</option>
+                                                <option value="SoloInteresesSinFecha">Solo Intereses</option>
+                                                <option value="Bullet">Bullet (Sin pagos mensuales)</option>
+                                                <option value="Quincenal">Quincenal</option>
+                                                <option value="Semanal">Semanal</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="plazoCuota" class="form-label">Plazo en Meses</label>
+                                            <input type="number" class="form-control" id="plazoCuota" min="1" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-calculator me-2"></i>Calcular Cuota
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">Resultados</h6>
+                                            <div id="resultadosCuota">
+                                                <p class="text-muted">Ingresa los datos y haz clic en "Calcular Cuota"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pestaña: Tasa de Interés -->
+                        <div class="tab-pane fade" id="tasa" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Calcular Tasa de Interés</h5>
+                                    <form id="formTasa">
+                                        <div class="mb-3">
+                                            <label for="montoTasa" class="form-label">Monto del Préstamo (RD$)</label>
+                                            <input type="number" class="form-control" id="montoTasa" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cuotaTasa" class="form-label">Cuota Mensual Deseada (RD$)</label>
+                                            <input type="number" class="form-control" id="cuotaTasa" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="plazoTasa" class="form-label">Plazo en Meses</label>
+                                            <input type="number" class="form-control" id="plazoTasa" min="1" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="frecuenciaTasa" class="form-label">Frecuencia de Pago</label>
+                                            <select class="form-control" id="frecuenciaTasa" required>
+                                                <option value="Mensual">Mensual</option>
+                                                <option value="SoloInteresesSinFecha">Solo Intereses</option>
+                                                <option value="Bullet">Bullet (Sin pagos mensuales)</option>
+                                                <option value="Quincenal">Quincenal</option>
+                                                <option value="Semanal">Semanal</option>
+                                            </select>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-percentage me-2"></i>Calcular Tasa
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">Resultados</h6>
+                                            <div id="resultadosTasa">
+                                                <p class="text-muted">Ingresa los datos y haz clic en "Calcular Tasa"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pestaña: Plazo del Préstamo -->
+                        <div class="tab-pane fade" id="plazo" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Calcular Plazo del Préstamo</h5>
+                                    <form id="formPlazo">
+                                        <div class="mb-3">
+                                            <label for="montoPlazo" class="form-label">Monto del Préstamo (RD$)</label>
+                                            <input type="number" class="form-control" id="montoPlazo" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tasaPlazo" class="form-label">Tasa de Interés Mensual (%)</label>
+                                            <input type="number" class="form-control" id="tasaPlazo" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="frecuenciaPlazo" class="form-label">Frecuencia de Pago</label>
+                                            <select class="form-control" id="frecuenciaPlazo" required>
+                                                <option value="Mensual">Mensual</option>
+                                                <option value="SoloInteresesSinFecha">Solo Intereses</option>
+                                                <option value="Bullet">Bullet (Sin pagos mensuales)</option>
+                                                <option value="Quincenal">Quincenal</option>
+                                                <option value="Semanal">Semanal</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="cuotaPlazo" class="form-label">Cuota Mensual Deseada (RD$)</label>
+                                            <input type="number" class="form-control" id="cuotaPlazo" step="0.01" min="0" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-calendar-alt me-2"></i>Calcular Plazo
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">Resultados</h6>
+                                            <div id="resultadosPlazo">
+                                                <p class="text-muted">Ingresa los datos y haz clic en "Calcular Plazo"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pestaña: Monto del Préstamo -->
+                        <div class="tab-pane fade" id="monto" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Calcular Monto del Préstamo</h5>
+                                    <form id="formMonto">
+                                        <div class="mb-3">
+                                            <label for="cuotaMonto" class="form-label">Cuota Mensual Deseada (RD$)</label>
+                                            <input type="number" class="form-control" id="cuotaMonto" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tasaMonto" class="form-label">Tasa de Interés Mensual (%)</label>
+                                            <input type="number" class="form-control" id="tasaMonto" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="frecuenciaMonto" class="form-label">Frecuencia de Pago</label>
+                                            <select class="form-control" id="frecuenciaMonto" required>
+                                                <option value="Mensual">Mensual</option>
+                                                <option value="SoloInteresesSinFecha">Solo Intereses</option>
+                                                <option value="Bullet">Bullet (Sin pagos mensuales)</option>
+                                                <option value="Quincenal">Quincenal</option>
+                                                <option value="Semanal">Semanal</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="plazoMonto" class="form-label">Plazo en Meses</label>
+                                            <input type="number" class="form-control" id="plazoMonto" min="1" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-dollar-sign me-2"></i>Calcular Monto
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">Resultados</h6>
+                                            <div id="resultadosMonto">
+                                                <p class="text-muted">Ingresa los datos y haz clic en "Calcular Monto"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pestaña: Tabla de Amortización -->
+                        <div class="tab-pane fade" id="amortizacion" role="tabpanel">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="text-primary mb-3">Generar Tabla de Amortización</h5>
+                                    <form id="formAmortizacion">
+                                        <div class="mb-3">
+                                            <label for="montoAmortizacion" class="form-label">Monto del Préstamo (RD$)</label>
+                                            <input type="number" class="form-control" id="montoAmortizacion" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="tasaAmortizacion" class="form-label">Tasa de Interés Mensual (%)</label>
+                                            <input type="number" class="form-control" id="tasaAmortizacion" step="0.01" min="0" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="frecuenciaAmortizacion" class="form-label">Frecuencia de Pago</label>
+                                            <select class="form-control" id="frecuenciaAmortizacion" required>
+                                                <option value="Mensual">Mensual</option>
+                                                <option value="SoloInteresesSinFecha">Solo Intereses</option>
+                                                <option value="Bullet">Bullet (Sin pagos mensuales)</option>
+                                                <option value="Quincenal">Quincenal</option>
+                                                <option value="Semanal">Semanal</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="plazoAmortizacion" class="form-label">Plazo en Meses</label>
+                                            <input type="number" class="form-control" id="plazoAmortizacion" min="1" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-table me-2"></i>Generar Tabla
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">Resumen</h6>
+                                            <div id="resumenAmortizacion">
+                                                <p class="text-muted">Ingresa los datos y haz clic en "Generar Tabla"</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div id="tablaAmortizacion"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts para la calculadora -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para formatear números como moneda
+    function formatearMoneda(valor) {
+        return new Intl.NumberFormat('es-DO', {
+            style: 'currency',
+            currency: 'DOP',
+            minimumFractionDigits: 2
+        }).format(valor);
+    }
+
+    // Función para calcular cuota mensual (usando la misma lógica que préstamos)
+    function calcularCuota(monto, tasaMensual, plazoMeses, frecuencia = 'Mensual') {
+        const tasa = tasaMensual / 100; // Tasa mensual directa como en préstamos
+        
+        if (tasa === 0) {
+            return monto / plazoMeses;
+        }
+        
+        let cuotaMensual, totalIntereses, totalPagar;
+        
+        if (frecuencia === 'Mensual') {
+            const montoCapitalMensual = monto / plazoMeses;
+            const interesMensual = monto * tasa;
+            cuotaMensual = montoCapitalMensual + interesMensual;
+        } else if (frecuencia === 'SoloInteresesSinFecha') {
+            const interesMensual = monto * tasa;
+            cuotaMensual = interesMensual;
+        } else if (frecuencia === 'Bullet') {
+            cuotaMensual = 0; // No hay pagos mensuales
+        } else {
+            // Para Quincenal y Semanal
+            const interesMensual = monto * tasa;
+            cuotaMensual = interesMensual;
+        }
+        
+        return cuotaMensual;
+    }
+
+    // Función para calcular tasa de interés mensual (usando la misma lógica que préstamos)
+    function calcularTasa(monto, cuota, plazoMeses, frecuencia = 'Mensual') {
+        if (frecuencia === 'Bullet') {
+            // Para préstamos bullet, la tasa se calcula diferente
+            const interesTotal = cuota * plazoMeses;
+            const tasaMensual = (interesTotal / monto) / plazoMeses;
+            return tasaMensual * 100;
+        }
+        
+        if (frecuencia === 'SoloInteresesSinFecha') {
+            // Solo intereses
+            const tasaMensual = cuota / monto;
+            return tasaMensual * 100;
+        }
+        
+        if (frecuencia === 'Mensual') {
+            // Para préstamos mensuales con capital + interés
+            const montoCapitalMensual = monto / plazoMeses;
+            const interesMensual = cuota - montoCapitalMensual;
+            const tasaMensual = interesMensual / monto;
+            return tasaMensual * 100;
+        }
+        
+        // Para otros tipos (Quincenal, Semanal)
+        const tasaMensual = cuota / monto;
+        return tasaMensual * 100;
+    }
+
+    // Función para calcular plazo
+    function calcularPlazo(monto, tasaAnual, cuota) {
+        const tasaMensual = tasaAnual / 100 / 12;
+        if (tasaMensual === 0) {
+            return monto / cuota;
+        }
+        const plazo = Math.log(cuota / (cuota - monto * tasaMensual)) / Math.log(1 + tasaMensual);
+        return Math.ceil(plazo);
+    }
+
+    // Función para calcular monto del préstamo
+    function calcularMonto(cuota, tasaAnual, plazoMeses) {
+        const tasaMensual = tasaAnual / 100 / 12;
+        if (tasaMensual === 0) {
+            return cuota * plazoMeses;
+        }
+        const monto = cuota * (Math.pow(1 + tasaMensual, plazoMeses) - 1) / (tasaMensual * Math.pow(1 + tasaMensual, plazoMeses));
+        return monto;
+    }
+
+    // Función para generar tabla de amortización (usando la misma lógica que préstamos)
+    function generarTablaAmortizacion(monto, tasaMensual, plazoMeses, frecuencia = 'Mensual') {
+        const tasa = tasaMensual / 100; // Tasa mensual directa
+        const cuota = calcularCuota(monto, tasaMensual, plazoMeses, frecuencia);
+        let saldoRestante = monto;
+        
+        let tabla = `
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>N° Cuota</th>
+                            <th>Cuota</th>
+                            <th>Interés</th>
+                            <th>Capital</th>
+                            <th>Saldo Restante</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        for (let i = 1; i <= plazoMeses; i++) {
+            let interes, capital;
+            
+            if (frecuencia === 'Mensual') {
+                interes = saldoRestante * tasa;
+                capital = cuota - interes;
+                saldoRestante -= capital;
+            } else if (frecuencia === 'SoloInteresesSinFecha') {
+                interes = monto * tasa;
+                capital = 0;
+                // El capital no se reduce
+            } else if (frecuencia === 'Bullet') {
+                interes = monto * tasa;
+                capital = 0;
+                if (i === plazoMeses) {
+                    capital = monto; // Solo se paga el capital al final
+                    saldoRestante = 0;
+                }
+            } else {
+                // Para Quincenal y Semanal
+                interes = monto * tasa;
+                capital = 0;
+                // El capital no se reduce
+            }
+            
+            if (saldoRestante < 0.01) saldoRestante = 0;
+            
+            tabla += `
+                <tr>
+                    <td>${i}</td>
+                    <td>${formatearMoneda(cuota)}</td>
+                    <td>${formatearMoneda(interes)}</td>
+                    <td>${formatearMoneda(capital)}</td>
+                    <td>${formatearMoneda(saldoRestante)}</td>
+                </tr>
+            `;
+        }
+        
+        tabla += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        return tabla;
+    }
+
+    // Event listeners para los formularios
+    document.getElementById('formCuota').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const monto = parseFloat(document.getElementById('montoCuota').value);
+        const tasa = parseFloat(document.getElementById('tasaCuota').value);
+        const plazo = parseInt(document.getElementById('plazoCuota').value);
+        const frecuencia = document.getElementById('frecuenciaCuota').value;
+        
+        const cuota = calcularCuota(monto, tasa, plazo, frecuencia);
+        const totalPagar = cuota * plazo;
+        const totalIntereses = totalPagar - monto;
+        
+        let descripcion = '';
+        if (frecuencia === 'Mensual') {
+            const montoCapitalMensual = monto / plazo;
+            const interesMensual = monto * (tasa / 100);
+            descripcion = `Capital: ${formatearMoneda(montoCapitalMensual)} + Interés: ${formatearMoneda(interesMensual)}`;
+        } else if (frecuencia === 'SoloInteresesSinFecha') {
+            descripcion = 'Solo intereses mensuales';
+        } else if (frecuencia === 'Bullet') {
+            descripcion = 'Sin pagos hasta el final';
+        } else {
+            descripcion = 'Con pagos regulares';
+        }
+        
+        document.getElementById('resultadosCuota').innerHTML = `
+            <div class="alert alert-success">
+                <h6 class="alert-heading">Resultados del Cálculo</h6>
+                <p><strong>Cuota Mensual:</strong> ${formatearMoneda(cuota)}</p>
+                <p><strong>Total a Pagar:</strong> ${formatearMoneda(totalPagar)}</p>
+                <p><strong>Total de Intereses:</strong> ${formatearMoneda(totalIntereses)}</p>
+                <p><strong>Plazo:</strong> ${plazo} meses</p>
+                <p><strong>Frecuencia:</strong> ${frecuencia}</p>
+                <p><strong>Descripción:</strong> ${descripcion}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById('formTasa').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const monto = parseFloat(document.getElementById('montoTasa').value);
+        const cuota = parseFloat(document.getElementById('cuotaTasa').value);
+        const plazo = parseInt(document.getElementById('plazoTasa').value);
+        const frecuencia = document.getElementById('frecuenciaTasa').value;
+        
+        const tasa = calcularTasa(monto, cuota, plazo, frecuencia);
+        
+        if (tasa !== null && !isNaN(tasa)) {
+            document.getElementById('resultadosTasa').innerHTML = `
+                <div class="alert alert-success">
+                    <h6 class="alert-heading">Resultados del Cálculo</h6>
+                    <p><strong>Tasa de Interés Mensual:</strong> ${tasa.toFixed(2)}%</p>
+                    <p><strong>Cuota Mensual:</strong> ${formatearMoneda(cuota)}</p>
+                    <p><strong>Total a Pagar:</strong> ${formatearMoneda(cuota * plazo)}</p>
+                    <p><strong>Frecuencia:</strong> ${frecuencia}</p>
+                </div>
+            `;
+        } else {
+            document.getElementById('resultadosTasa').innerHTML = `
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading">Error en el Cálculo</h6>
+                    <p>No se pudo calcular la tasa de interés con los datos proporcionados. Verifica que la cuota sea mayor al interés mínimo.</p>
+                </div>
+            `;
+        }
+    });
+
+    document.getElementById('formPlazo').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const monto = parseFloat(document.getElementById('montoPlazo').value);
+        const tasa = parseFloat(document.getElementById('tasaPlazo').value);
+        const cuota = parseFloat(document.getElementById('cuotaPlazo').value);
+        const frecuencia = document.getElementById('frecuenciaPlazo').value;
+        
+        const plazo = calcularPlazo(monto, tasa, cuota);
+        const totalPagar = cuota * plazo;
+        const totalIntereses = totalPagar - monto;
+        
+        document.getElementById('resultadosPlazo').innerHTML = `
+            <div class="alert alert-success">
+                <h6 class="alert-heading">Resultados del Cálculo</h6>
+                <p><strong>Plazo del Préstamo:</strong> ${plazo} meses</p>
+                <p><strong>Total a Pagar:</strong> ${formatearMoneda(totalPagar)}</p>
+                <p><strong>Total de Intereses:</strong> ${formatearMoneda(totalIntereses)}</p>
+                <p><strong>Cuota Mensual:</strong> ${formatearMoneda(cuota)}</p>
+                <p><strong>Frecuencia:</strong> ${frecuencia}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById('formMonto').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const cuota = parseFloat(document.getElementById('cuotaMonto').value);
+        const tasa = parseFloat(document.getElementById('tasaMonto').value);
+        const plazo = parseInt(document.getElementById('plazoMonto').value);
+        const frecuencia = document.getElementById('frecuenciaMonto').value;
+        
+        const monto = calcularMonto(cuota, tasa, plazo);
+        const totalPagar = cuota * plazo;
+        const totalIntereses = totalPagar - monto;
+        
+        document.getElementById('resultadosMonto').innerHTML = `
+            <div class="alert alert-success">
+                <h6 class="alert-heading">Resultados del Cálculo</h6>
+                <p><strong>Monto del Préstamo:</strong> ${formatearMoneda(monto)}</p>
+                <p><strong>Total a Pagar:</strong> ${formatearMoneda(totalPagar)}</p>
+                <p><strong>Total de Intereses:</strong> ${formatearMoneda(totalIntereses)}</p>
+                <p><strong>Plazo:</strong> ${plazo} meses</p>
+                <p><strong>Frecuencia:</strong> ${frecuencia}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById('formAmortizacion').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const monto = parseFloat(document.getElementById('montoAmortizacion').value);
+        const tasa = parseFloat(document.getElementById('tasaAmortizacion').value);
+        const plazo = parseInt(document.getElementById('plazoAmortizacion').value);
+        const frecuencia = document.getElementById('frecuenciaAmortizacion').value;
+        
+        const cuota = calcularCuota(monto, tasa, plazo, frecuencia);
+        const totalPagar = cuota * plazo;
+        const totalIntereses = totalPagar - monto;
+        
+        document.getElementById('resumenAmortizacion').innerHTML = `
+            <div class="alert alert-info">
+                <h6 class="alert-heading">Resumen del Préstamo</h6>
+                <p><strong>Monto del Préstamo:</strong> ${formatearMoneda(monto)}</p>
+                <p><strong>Tasa de Interés Mensual:</strong> ${tasa}%</p>
+                <p><strong>Plazo:</strong> ${plazo} meses</p>
+                <p><strong>Cuota Mensual:</strong> ${formatearMoneda(cuota)}</p>
+                <p><strong>Total a Pagar:</strong> ${formatearMoneda(totalPagar)}</p>
+                <p><strong>Total de Intereses:</strong> ${formatearMoneda(totalIntereses)}</p>
+                <p><strong>Frecuencia:</strong> ${frecuencia}</p>
+            </div>
+        `;
+        
+        document.getElementById('tablaAmortizacion').innerHTML = generarTablaAmortizacion(monto, tasa, plazo, frecuencia);
+    });
+});
+</script>
+{% endblock %}

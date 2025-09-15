@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Editar Usuario</h1>
+        <a href="{{ url_for('usuarios') }}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a Usuarios
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Información del Usuario</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('editar_usuario', usuario_id=usuario.id) }}">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Nombre de Usuario</label>
+                            <input type="text" class="form-control" id="username" value="{{ usuario.username }}" readonly>
+                            <div class="form-text">El nombre de usuario no se puede cambiar.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Nueva Contraseña</label>
+                            <input type="password" class="form-control" id="password" name="password">
+                            <div class="form-text">Dejar en blanco para mantener la contraseña actual.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ usuario.nombre }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="apellidos" class="form-label">Apellidos *</label>
+                            <input type="text" class="form-control" id="apellidos" name="apellidos" value="{{ usuario.apellidos }}" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="cargo" class="form-label">Cargo *</label>
+                            <input type="text" class="form-control" id="cargo" name="cargo" value="{{ usuario.cargo }}" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="rol" class="form-label">Rol *</label>
+                            <select class="form-select" id="rol" name="rol" required>
+                                <option value="empleado" {{ 'selected' if usuario.rol == 'empleado' }}>Empleado</option>
+                                <option value="admin" {{ 'selected' if usuario.rol == 'admin' }}>Administrador</option>
+                            </select>
+                            <div class="form-text">
+                                <strong>Empleado:</strong> Acceso básico al sistema<br>
+                                <strong>Administrador:</strong> Acceso completo y gestión de usuarios
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="activo" name="activo" {{ 'checked' if usuario.activo }}>
+                                <label class="form-check-label" for="activo">
+                                    Usuario Activo
+                                </label>
+                            </div>
+                            <div class="form-text">Desmarcar para desactivar el usuario.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Información del Sistema</label>
+                            <div class="form-control-plaintext">
+                                <strong>ID:</strong> {{ usuario.id }}<br>
+                                <strong>Fecha de Creación:</strong> {{ usuario.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}<br>
+                                {% if usuario.ultimo_acceso %}
+                                <strong>Último Acceso:</strong> {{ usuario.ultimo_acceso.strftime('%d/%m/%Y %H:%M') }}
+                                {% else %}
+                                <strong>Último Acceso:</strong> Nunca
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Advertencia:</strong> Los cambios en el rol del usuario pueden afectar su acceso al sistema.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                        <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <a href="{{ url_for('ver_usuario', usuario_id=usuario.id) }}" class="btn btn-info">
+                            <i class="fas fa-eye"></i> Ver Usuario
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Validación del formulario
+    $('form').on('submit', function(e) {
+        const password = $('#password').val();
+        if (password.length > 0 && password.length < 6) {
+            e.preventDefault();
+            alert('La contraseña debe tener al menos 6 caracteres.');
+            $('#password').focus();
+            return false;
+        }
+    });
+
+    // Confirmación antes de cambiar el rol
+    $('#rol').on('change', function() {
+        const newRol = $(this).val();
+        const currentRol = '{{ usuario.rol }}';
+        
+        if (newRol !== currentRol) {
+            const confirmMessage = `¿Estás seguro de que quieres cambiar el rol de este usuario de '${currentRol}' a '${newRol}'?\n\nEste cambio puede afectar el acceso del usuario al sistema.`;
+            if (!confirm(confirmMessage)) {
+                $(this).val(currentRol);
+            }
+        }
+    });
+
+    // Confirmación antes de desactivar usuario
+    $('#activo').on('change', function() {
+        if (!this.checked) {
+            const confirmMessage = '¿Estás seguro de que quieres desactivar este usuario?\n\nEl usuario no podrá acceder al sistema hasta que sea reactivado.';
+            if (!confirm(confirmMessage)) {
+                this.checked = true;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

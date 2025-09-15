@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Notificaciones - Wandy Soluciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">
+                    <i class="fas fa-bell text-primary me-2"></i>
+                    Notificaciones
+                    {% if no_leidas > 0 %}
+                        <span class="badge bg-danger ms-2">{{ no_leidas }}</span>
+                    {% endif %}
+                </h1>
+                
+                <div class="d-flex gap-2">
+                    <form method="POST" action="{{ url_for('marcar_todas_notificaciones_leidas') }}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-check-double me-1"></i>
+                            Marcar todas como leídas
+                        </button>
+                    </form>
+                    
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-filter me-1"></i>
+                            Filtros
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('notificaciones') }}">Todas</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('notificaciones', estado='no_leidas') }}">No leídas</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('notificaciones', estado='leidas') }}">Leídas</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('notificaciones', tipo='info') }}">Información</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('notificaciones', tipo='success') }}">Éxito</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('notificaciones', tipo='warning') }}">Advertencia</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('notificaciones', tipo='danger') }}">Error</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% if notificaciones.items %}
+                <div class="row">
+                    {% for notificacion in notificaciones.items %}
+                        <div class="col-12 mb-3">
+                            <div class="card notification-card {% if not notificacion.leida %}border-primary{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <h6 class="card-title mb-0 me-2">
+                                                    {% if notificacion.tipo == 'info' %}
+                                                        <i class="fas fa-info-circle text-info me-2"></i>
+                                                    {% elif notificacion.tipo == 'success' %}
+                                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                                    {% elif notificacion.tipo == 'warning' %}
+                                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                                    {% elif notificacion.tipo == 'danger' %}
+                                                        <i class="fas fa-times-circle text-danger me-2"></i>
+                                                    {% endif %}
+                                                    {{ notificacion.titulo }}
+                                                </h6>
+                                                
+                                                {% if not notificacion.leida %}
+                                                    <span class="badge bg-primary">Nueva</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <p class="card-text text-muted mb-2">{{ notificacion.mensaje }}</p>
+                                            
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    {{ notificacion.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}
+                                                </small>
+                                                
+                                                <div class="d-flex gap-2">
+                                                    {% if notificacion.accion_url and notificacion.accion_texto %}
+                                                        <a href="{{ notificacion.accion_url }}" class="btn btn-primary btn-sm">
+                                                            <i class="fas fa-external-link-alt me-1"></i>
+                                                            {{ notificacion.accion_texto }}
+                                                        </a>
+                                                    {% endif %}
+                                                    
+                                                    {% if not notificacion.leida %}
+                                                        <a href="{{ url_for('marcar_notificacion_leida', notif_id=notificacion.id) }}" 
+                                                           class="btn btn-outline-secondary btn-sm">
+                                                            <i class="fas fa-check me-1"></i>
+                                                            Marcar como leída
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if notificaciones.pages > 1 %}
+                    <nav aria-label="Navegación de notificaciones">
+                        <ul class="pagination justify-content-center">
+                            {% if notificaciones.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('notificaciones', page=notificaciones.prev_num, tipo=tipo, estado=estado) }}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for page_num in notificaciones.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num != notificaciones.page %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('notificaciones', page=page_num, tipo=tipo, estado=estado) }}">
+                                                {{ page_num }}
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if notificaciones.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('notificaciones', page=notificaciones.next_num, tipo=tipo, estado=estado) }}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-bell-slash fa-3x text-muted"></i>
+                    </div>
+                    <h5 class="text-muted">No hay notificaciones</h5>
+                    <p class="text-muted">Cuando tengas notificaciones, aparecerán aquí.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-card {
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.notification-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.notification-card.border-primary {
+    border-left-color: #007bff;
+}
+
+.notification-card .card-body {
+    padding: 1.25rem;
+}
+
+.notification-card .badge {
+    font-size: 0.75rem;
+}
+
+.notification-card .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+@media (max-width: 768px) {
+    .notification-card .d-flex {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .notification-card .d-flex .gap-2 {
+        margin-top: 1rem;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

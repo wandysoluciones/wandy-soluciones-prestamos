@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Préstamo - Wandy Soluciones{% endblock %}
+{% block page_title %}Editar Préstamo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Editar Préstamo #{{ prestamo.id }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('prestamos') }}">Préstamos</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('ver_prestamo', prestamo_id=prestamo.id) }}">Préstamo #{{ prestamo.id }}</a></li>
+                    <li class="breadcrumb-item active">Editar</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('ver_prestamo', prestamo_id=prestamo.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Información del Préstamo
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="cliente_id" class="form-label">Cliente *</label>
+                                <select class="form-select" id="cliente_id" name="cliente_id" required>
+                                    <option value="">Seleccionar cliente</option>
+                                    {% for cliente in clientes %}
+                                    <option value="{{ cliente.id }}" {{ 'selected' if cliente.id == prestamo.cliente_id }}>
+                                        {{ cliente.nombre }} {{ cliente.apellidos }} - {{ cliente.documento }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="monto" class="form-label">Monto del Préstamo *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">RD$</span>
+                                    <input type="number" class="form-control" id="monto" name="monto" 
+                                           value="{{ prestamo.monto }}" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="tasa_interes" class="form-label">Tasa de Interés (%) *</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="tasa_interes" name="tasa_interes" 
+                                           value="{{ prestamo.tasa_interes }}" step="0.01" min="0" max="100" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="plazo_meses" class="form-label">Plazo (meses) *</label>
+                                <input type="number" class="form-control" id="plazo_meses" name="plazo_meses" 
+                                       value="{{ prestamo.plazo_meses }}" min="1" max="120" required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="frecuencia" class="form-label">Frecuencia de Pago *</label>
+                                <select class="form-select" id="frecuencia" name="frecuencia" required>
+                                    <option value="Mensual" {{ 'selected' if prestamo.frecuencia == 'Mensual' }}>Mensual</option>
+                                    <option value="Quincenal" {{ 'selected' if prestamo.frecuencia == 'Quincenal' }}>Quincenal</option>
+                                    <option value="Semanal" {{ 'selected' if prestamo.frecuencia == 'Semanal' }}>Semanal</option>
+                                    <option value="SoloInteresesSinFecha" {{ 'selected' if prestamo.frecuencia == 'SoloInteresesSinFecha' }}>Solo Intereses</option>
+                                    <option value="Bullet" {{ 'selected' if prestamo.frecuencia == 'Bullet' }}>Bullet (Solo Intereses + Capital al Final)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fecha_primera_cuota" class="form-label">Fecha Primera Cuota *</label>
+                                <input type="date" class="form-control" id="fecha_primera_cuota" name="fecha_primera_cuota" 
+                                       value="{{ prestamo.fecha_primera_cuota.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="tipo_garantia" class="form-label">Tipo de Garantía</label>
+                                <select class="form-select" id="tipo_garantia" name="tipo_garantia">
+                                    <option value="">Sin garantía</option>
+                                    <option value="Vehiculo" {{ 'selected' if prestamo.tipo_garantia == 'Vehiculo' }}>Vehículo</option>
+                                    <option value="Propiedad" {{ 'selected' if prestamo.tipo_garantia == 'Propiedad' }}>Propiedad</option>
+                                    <option value="Electrodomestico" {{ 'selected' if prestamo.tipo_garantia == 'Electrodomestico' }}>Electrodoméstico</option>
+                                    <option value="Otro" {{ 'selected' if prestamo.tipo_garantia == 'Otro' }}>Otro</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="valor_garantia" class="form-label">Valor de la Garantía</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">RD$</span>
+                                    <input type="number" class="form-control" id="valor_garantia" name="valor_garantia" 
+                                           value="{{ prestamo.valor_garantia or '' }}" step="0.01" min="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="descripcion_garantia" class="form-label">Descripción de la Garantía</label>
+                        <textarea class="form-control" id="descripcion_garantia" name="descripcion_garantia" 
+                                  rows="3" placeholder="Describa los detalles de la garantía...">{{ prestamo.descripcion_garantia or '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                        <a href="{{ url_for('ver_prestamo', prestamo_id=prestamo.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Cliente -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>Información del Cliente
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> {{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}</p>
+                        <p><strong>Documento:</strong> {{ prestamo.cliente.documento }}</p>
+                        <p><strong>Teléfono:</strong> {{ prestamo.cliente.telefono_principal }}</p>
+                        <p><strong>Provincia:</strong> {{ prestamo.cliente.provincia }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Dirección:</strong> {{ prestamo.cliente.direccion }}, {{ prestamo.cliente.sector }}</p>
+                        <p><strong>Municipio:</strong> {{ prestamo.cliente.municipio }}</p>
+                        <p><strong>Ocupación:</strong> {{ prestamo.cliente.ocupacion }}</p>
+                        <p><strong>Ingresos:</strong> RD$ {{ prestamo.cliente.ingresos }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen del Préstamo -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator me-2"></i>Resumen del Préstamo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Monto:</strong></p>
+                        <p><strong>Tasa de Interés:</strong></p>
+                        <p><strong>Plazo:</strong></p>
+                        <p><strong>Frecuencia:</strong></p>
+                        <p><strong>Estado:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="text-primary">RD$ {{ prestamo.monto }}</p>
+                        <p>{{ prestamo.tasa_interes }}%</p>
+                        <p>{{ prestamo.plazo_meses }} meses</p>
+                        <p>{{ prestamo.frecuencia }}</p>
+                        <p><span class="badge bg-{{ 'success' if prestamo.estado == 'Activo' else 'warning' }}">{{ prestamo.estado }}</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Información Adicional
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Fecha de Creación:</strong></p>
+                        <p><strong>Fecha Primera Cuota:</strong></p>
+                        <p><strong>Tipo de Garantía:</strong></p>
+                        <p><strong>Valor Garantía:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p>{{ prestamo.fecha_creacion.strftime('%d/%m/%Y') }}</p>
+                        <p>{{ prestamo.fecha_primera_cuota.strftime('%d/%m/%Y') }}</p>
+                        <p>{{ prestamo.tipo_garantia or 'Sin garantía' }}</p>
+                        <p>{{ 'RD$ ' + prestamo.valor_garantia|string if prestamo.valor_garantia else 'N/A' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const monto = parseFloat(document.getElementById('monto').value);
+        const tasaInteres = parseFloat(document.getElementById('tasa_interes').value);
+        const plazoMeses = parseInt(document.getElementById('plazo_meses').value);
+        
+        if (monto <= 0) {
+            e.preventDefault();
+            alert('El monto del préstamo debe ser mayor a 0');
+            return false;
+        }
+        
+        if (tasaInteres < 0 || tasaInteres > 100) {
+            e.preventDefault();
+            alert('La tasa de interés debe estar entre 0% y 100%');
+            return false;
+        }
+        
+        if (plazoMeses <= 0 || plazoMeses > 120) {
+            e.preventDefault();
+            alert('El plazo debe estar entre 1 y 120 meses');
+            return false;
+        }
+    });
+    
+    // Mostrar/ocultar campos de garantía según el tipo seleccionado
+    const tipoGarantia = document.getElementById('tipo_garantia');
+    const valorGarantia = document.getElementById('valor_garantia');
+    const descripcionGarantia = document.getElementById('descripcion_garantia');
+    
+    function toggleGarantiaFields() {
+        if (tipoGarantia.value) {
+            valorGarantia.parentElement.style.display = 'block';
+            descripcionGarantia.parentElement.style.display = 'block';
+        } else {
+            valorGarantia.parentElement.style.display = 'none';
+            descripcionGarantia.parentElement.style.display = 'none';
+        }
+    }
+    
+    tipoGarantia.addEventListener('change', toggleGarantiaFields);
+    toggleGarantiaFields(); // Ejecutar al cargar la página
+});
+</script>
+{% endblock %}

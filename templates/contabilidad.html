@@ -1,0 +1,917 @@
+{% extends "base.html" %}
+
+{% block title %}Contabilidad - Wandy Soluciones{% endblock %}
+{% block page_title %}Contabilidad{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Control Contable</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Contabilidad</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button class="btn btn-success me-2" onclick="registrarIngreso()">
+                <i class="fas fa-plus me-2"></i>Nuevo Ingreso
+            </button>
+            <button class="btn btn-danger" onclick="registrarGasto()">
+                <i class="fas fa-minus me-2"></i>Nuevo Gasto
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen financiero -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">RD$ {{ "%.2f"|format(capital_disponible) if capital_disponible else 0 }}</h3>
+                    <p class="mb-0">Capital Disponible</p>
+                </div>
+                <i class="fas fa-wallet fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">RD$ {{ "%.2f"|format(total_ingresos) if total_ingresos else 0 }}</h3>
+                    <p class="mb-0">Total Ingresos</p>
+                </div>
+                <i class="fas fa-arrow-up fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">RD$ {{ "%.2f"|format(total_gastos) if total_gastos else 0 }}</h3>
+                    <p class="mb-0">Total Gastos</p>
+                </div>
+                <i class="fas fa-arrow-down fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">RD$ {{ "%.2f"|format(utilidad_neta) if utilidad_neta else 0 }}</h3>
+                    <p class="mb-0">Utilidad Neta</p>
+                </div>
+                <i class="fas fa-chart-line fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico de flujo de caja -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-area me-2"></i>Flujo de Caja - Últimos 12 Meses
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="flujoCajaChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-pie-chart me-2"></i>Distribución de Gastos
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="gastosChart" width="200" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros y búsqueda -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar transacciones...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterTipo">
+                    <option value="">Todos los tipos</option>
+                    <option value="Ingreso">Ingresos</option>
+                    <option value="Gasto">Gastos</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="filterFechaInicio" placeholder="Fecha inicio">
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="filterFechaFin" placeholder="Fecha fin">
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-secondary w-100" id="exportBtn">
+                    <i class="fas fa-download me-2"></i>Exportar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de transacciones -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Historial de Transacciones
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if transacciones %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Categoría</th>
+                        <th>Monto</th>
+                        <th>Capital Actual</th>
+                        <th>Usuario</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaccion in transacciones %}
+                    <tr class="{% if transaccion.monto < 0 %}table-success{% else %}table-warning{% endif %}">
+                        <td>
+                            {{ transaccion.fecha.strftime('%d/%m/%Y') if transaccion.fecha else 'N/A' }}
+                        </td>
+                        <td>
+                            {% if transaccion.monto < 0 %}
+                                <span class="badge bg-success">Ingreso</span>
+                            {% else %}
+                                <span class="badge bg-warning">Gasto</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ transaccion.descripcion }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ transaccion.tipo }}</span>
+                        </td>
+                        <td>
+                            <strong class="{% if transaccion.monto < 0 %}text-success{% else %}text-danger{% endif %}">
+                                {% if transaccion.monto < 0 %}+{% else %}-{% endif %}RD$ {{ "%.2f"|format(transaccion.monto|abs) }}
+                            </strong>
+                        </td>
+                        <td>
+                            <strong>RD$ {{ "%.2f"|format(contabilidad.capital_disponible) }}</strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">Sistema</span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="verTransaccion({{ transaccion.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if current_user.is_admin() %}
+                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                        onclick="editarTransaccion({{ transaccion.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="eliminarTransaccion({{ transaccion.id }}, '{{ transaccion.descripcion }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                        onclick="imprimirComprobante({{ transaccion.id }})">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación - Comentada temporalmente -->
+        <!-- La paginación se implementará en una versión futura -->
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calculator fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay transacciones registradas</h5>
+            <p class="text-muted">Comienza registrando ingresos y gastos</p>
+            <div>
+                <button class="btn btn-success me-2" onclick="registrarIngreso()">
+                    <i class="fas fa-plus me-2"></i>Registrar Ingreso
+                </button>
+                <button class="btn btn-danger" onclick="registrarGasto()">
+                    <i class="fas fa-minus me-2"></i>Registrar Gasto
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para registrar ingreso -->
+<div class="modal fade" id="ingresoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Nuevo Ingreso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formIngreso" action="{{ url_for('registrar_ingreso') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Descripción *</label>
+                        <input type="text" class="form-control" name="descripcion" id="descripcionIngreso" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Monto (RD$) *</label>
+                        <input type="number" class="form-control" name="monto" id="montoIngreso" step="0.01" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-select" name="categoria" id="categoriaIngreso">
+                            <option value="Pagos">Pagos de Préstamos</option>
+                            <option value="Intereses">Intereses</option>
+                            <option value="Garantias">Garantías</option>
+                            <option value="Otros">Otros Ingresos</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" name="observaciones" id="observacionesIngreso" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formIngreso" class="btn btn-success">Registrar Ingreso</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para registrar gasto -->
+<div class="modal fade" id="gastoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Nuevo Gasto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formGasto" action="{{ url_for('registrar_gasto') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Descripción *</label>
+                        <input type="text" class="form-control" name="descripcion" id="descripcionGasto" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Monto (RD$) *</label>
+                        <input type="number" class="form-control" name="monto" id="montoGasto" step="0.01" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Categoría</label>
+                        <select class="form-select" name="categoria" id="categoriaGasto">
+                            <option value="Operativos">Gastos Operativos</option>
+                            <option value="Administrativos">Gastos Administrativos</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Otros">Otros Gastos</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" name="observaciones" id="observacionesGasto" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formGasto" class="btn btn-danger">Registrar Gasto</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para imprimir comprobante -->
+<div class="modal fade" id="imprimirModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Comprobante - Vista de Impresión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="imprimirModalBody">
+                <!-- Contenido del comprobante para impresión -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configurar fechas por defecto
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const today = new Date();
+        const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+        
+        const fechaInicio = document.getElementById('filterFechaInicio');
+        const fechaFin = document.getElementById('filterFechaFin');
+        
+        if (fechaInicio) fechaInicio.value = lastMonth.toISOString().split('T')[0];
+        if (fechaFin) fechaFin.value = today.toISOString().split('T')[0];
+        
+        // Inicializar gráficos
+        inicializarGraficos();
+    } catch (error) {
+        console.error('Error al inicializar página:', error);
+    }
+});
+
+// Búsqueda en tiempo real
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        try {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        } catch (error) {
+            console.error('Error en búsqueda:', error);
+        }
+    });
+}
+
+// Filtro por tipo
+const filterTipo = document.getElementById('filterTipo');
+if (filterTipo) {
+    filterTipo.addEventListener('change', function() {
+        try {
+            const tipo = this.value;
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const tipoCell = row.querySelector('td:nth-child(2)');
+                if (tipoCell) {
+                    const tipoText = tipoCell.textContent;
+                    row.style.display = !tipo || tipoText.includes(tipo) ? '' : 'none';
+                }
+            });
+        } catch (error) {
+            console.error('Error en filtro:', error);
+        }
+    });
+}
+
+// Función para registrar ingreso
+function registrarIngreso() {
+    try {
+        const modalElement = document.getElementById('ingresoModal');
+        if (modalElement && typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } else {
+            console.error('Bootstrap no está disponible o el modal no existe');
+        }
+    } catch (error) {
+        console.error('Error al abrir modal de ingreso:', error);
+    }
+}
+
+// Función para registrar gasto
+function registrarGasto() {
+    try {
+        const modalElement = document.getElementById('gastoModal');
+        if (modalElement && typeof bootstrap !== 'undefined') {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        } else {
+            console.error('Bootstrap no está disponible o el modal no existe');
+        }
+    } catch (error) {
+        console.error('Error al abrir modal de gasto:', error);
+    }
+}
+
+// Las funciones confirmarIngreso y confirmarGasto ya no son necesarias
+// Los formularios ahora se envían directamente al backend
+
+// Función para ver transacción
+function verTransaccion(transaccionId) {
+    try {
+        // Buscar la fila de la transacción en la tabla
+        const tbody = document.querySelector('tbody');
+        let row = null;
+        let fecha = 'N/A';
+        let tipo = 'N/A';
+        let descripcion = 'N/A';
+        let categoria = 'N/A';
+        let monto = 'N/A';
+        let capitalActual = 'N/A';
+        let usuario = 'N/A';
+        
+        if (tbody) {
+            const rows = tbody.querySelectorAll('tr');
+            // Buscar la fila que contiene el botón con el transaccionId correcto
+            for (let i = 0; i < rows.length; i++) {
+                const button = rows[i].querySelector(`button[onclick*="${transaccionId}"]`);
+                if (button) {
+                    row = rows[i];
+                    break;
+                }
+            }
+            
+            if (row) {
+                // Extraer datos de la transacción
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 7) {
+                    fecha = cells[0]?.textContent?.trim() || 'N/A';
+                    tipo = cells[1]?.textContent?.trim() || 'N/A';
+                    descripcion = cells[2]?.textContent?.trim() || 'N/A';
+                    categoria = cells[3]?.textContent?.trim() || 'N/A';
+                    monto = cells[4]?.textContent?.trim() || 'N/A';
+                    capitalActual = cells[5]?.textContent?.trim() || 'N/A';
+                    usuario = cells[6]?.textContent?.trim() || 'N/A';
+                }
+            }
+        }
+        
+        // Generar HTML de la vista de transacción
+        const transaccionHtml = `
+            <div class="transaccion-view" style="font-family: Arial, sans-serif;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Información de la Transacción
+                        </h5>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="fw-bold text-muted">ID:</td>
+                                <td><span class="badge bg-secondary">#${transaccionId}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Fecha:</td>
+                                <td><i class="fas fa-calendar me-2"></i>${fecha}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Tipo:</td>
+                                <td>${tipo}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Descripción:</td>
+                                <td><strong>${descripcion}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Categoría:</td>
+                                <td><span class="badge bg-info">${categoria}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-muted">Monto:</td>
+                                <td><span class="h5 ${monto.includes('+') ? 'text-success' : 'text-danger'}">${monto}</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">
+                            <i class="fas fa-chart-line me-2"></i>Estado Financiero
+                        </h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Capital Actual:</label>
+                                    <div class="h6 text-success">${capitalActual}</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Usuario:</label>
+                                    <div class="h6">${usuario}</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">Estado:</label>
+                                    <div><span class="badge bg-success">Confirmado</span></div>
+                                </div>
+                                <div>
+                                    <label class="form-label text-muted">Fecha de Consulta:</label>
+                                    <div class="text-muted">${new Date().toLocaleDateString('es-ES')} ${new Date().toLocaleTimeString('es-ES')}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            <strong>Nota:</strong> Esta transacción ha sido registrada en el sistema contable y afecta el balance general de la empresa.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Mostrar en el modal existente
+        document.getElementById('imprimirModalBody').innerHTML = transaccionHtml;
+        document.querySelector('#imprimirModal .modal-title').textContent = 'Detalles de la Transacción';
+        
+        // Cambiar el botón de impresión por uno de cerrar
+        const footer = document.querySelector('#imprimirModal .modal-footer');
+        footer.innerHTML = `
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <button type="button" class="btn btn-primary" onclick="imprimirComprobante(${transaccionId})">
+                <i class="fas fa-print me-2"></i>Imprimir Comprobante
+            </button>
+        `;
+        
+        // Mostrar el modal
+        const modal = new bootstrap.Modal(document.getElementById('imprimirModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('Error al mostrar transacción:', error);
+        alert('Error al mostrar los detalles de la transacción');
+    }
+}
+
+// Función para editar transacción
+function editarTransaccion(transaccionId) {
+    try {
+        // Redirigir a la página de edición
+        window.location.href = `/contabilidad/gastos/${transaccionId}/editar`;
+    } catch (error) {
+        console.error('Error al editar transacción:', error);
+        alert('Error al editar la transacción');
+    }
+}
+
+// Función para eliminar transacción
+function eliminarTransaccion(transaccionId, descripcion) {
+    try {
+        if (confirm(`¿Estás seguro de que quieres eliminar la transacción "${descripcion}"?\n\nEsta acción no se puede deshacer.`)) {
+            // Crear un formulario temporal para enviar la solicitud POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/contabilidad/gastos/${transaccionId}/eliminar`;
+            
+            // Agregar el formulario al DOM y enviarlo
+            document.body.appendChild(form);
+            form.submit();
+        }
+    } catch (error) {
+        console.error('Error al eliminar transacción:', error);
+        alert('Error al eliminar la transacción');
+    }
+}
+
+// Función para imprimir comprobante
+function imprimirComprobante(transaccionId) {
+    // Abrir en modal dentro de la aplicación
+    const modal = new bootstrap.Modal(document.getElementById('imprimirModal'));
+    
+    // Buscar la fila de la transacción en la tabla
+    const tbody = document.querySelector('tbody');
+    let row = null;
+    let fecha = 'N/A';
+    let tipo = 'N/A';
+    let descripcion = 'N/A';
+    let categoria = 'N/A';
+    let monto = 'N/A';
+    
+    if (tbody) {
+        const rows = tbody.querySelectorAll('tr');
+        // Buscar la fila que contiene el botón con el transaccionId correcto
+        for (let i = 0; i < rows.length; i++) {
+            const button = rows[i].querySelector(`button[onclick*="${transaccionId}"]`);
+            if (button) {
+                row = rows[i];
+                break;
+            }
+        }
+        
+        if (row) {
+            // Extraer datos de la transacción
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 7) {
+                fecha = cells[0]?.textContent?.trim() || 'N/A';
+                tipo = cells[1]?.textContent?.trim() || 'N/A';
+                descripcion = cells[2]?.textContent?.trim() || 'N/A';
+                categoria = cells[3]?.textContent?.trim() || 'N/A';
+                monto = cells[4]?.textContent?.trim() || 'N/A';
+            }
+        }
+    }
+    
+    // Generar HTML del comprobante
+    const comprobanteHtml = `
+        <div class="comprobante-print" style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+            <div class="header text-center mb-4" style="border-bottom: 2px solid #333; padding-bottom: 20px;">
+                <h2 style="color: #333; margin-bottom: 10px;">Wandy Soluciones</h2>
+                <h3 style="color: #666; margin-bottom: 5px;">Comprobante de Transacción</h3>
+                <p style="color: #999; font-size: 14px;">Sistema de Gestión Financiera</p>
+            </div>
+            
+            <div class="content mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 style="color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Información de la Transacción</h5>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; font-weight: bold; color: #555;">ID:</td>
+                                <td style="padding: 8px 0; color: #333;">#${transaccionId}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-weight: bold; color: #555;">Fecha:</td>
+                                <td style="padding: 8px 0; color: #333;">${fecha}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-weight: bold; color: #555;">Tipo:</td>
+                                <td style="padding: 8px 0; color: #333;">${tipo}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-weight: bold; color: #555;">Descripción:</td>
+                                <td style="padding: 8px 0; color: #333;">${descripcion}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-weight: bold; color: #555;">Categoría:</td>
+                                <td style="padding: 8px 0; color: #333;">${categoria}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-weight: bold; color: #555;">Monto:</td>
+                                <td style="padding: 8px 0; color: #333; font-size: 18px; font-weight: bold;">${monto}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 style="color: #333; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Detalles Adicionales</h5>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <p style="margin-bottom: 10px;"><strong>Fecha de Impresión:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
+                            <p style="margin-bottom: 10px;"><strong>Hora de Impresión:</strong> ${new Date().toLocaleTimeString('es-ES')}</p>
+                            <p style="margin-bottom: 10px;"><strong>Usuario:</strong> Sistema</p>
+                            <p style="margin-bottom: 0;"><strong>Estado:</strong> <span style="color: #28a745;">Confirmado</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer text-center" style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 30px;">
+                <p style="color: #666; font-size: 12px; margin-bottom: 5px;">Este documento es un comprobante oficial de la transacción realizada</p>
+                <p style="color: #999; font-size: 11px;">Wandy Soluciones - Todos los derechos reservados</p>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('imprimirModalBody').innerHTML = comprobanteHtml;
+    modal.show();
+}
+
+// Exportar contabilidad
+const exportBtn = document.getElementById('exportBtn');
+if (exportBtn) {
+    exportBtn.addEventListener('click', function() {
+        try {
+            alert('Función de exportación en desarrollo');
+        } catch (error) {
+            console.error('Error en exportación:', error);
+        }
+    });
+}
+
+// Inicializar gráficos de forma segura
+function inicializarGraficos() {
+    try {
+        // Verificar si Chart.js está disponible
+        if (typeof Chart === 'undefined') {
+            console.log('Chart.js no está disponible, omitiendo gráficos');
+            return;
+        }
+        
+        // Gráfico de flujo de caja
+        const ctxFlujo = document.getElementById('flujoCajaChart');
+        if (ctxFlujo) {
+            const ctx = ctxFlujo.getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: [12000, 15000, 18000, 14000, 16000, 19000, 17000, 20000, 18000, 16000, 19000, 22000],
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.1
+                    }, {
+                        label: 'Gastos',
+                        data: [8000, 9000, 11000, 8500, 9500, 12000, 10000, 13000, 11000, 9500, 12000, 14000],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Gráfico de distribución de gastos
+        const ctxGastos = document.getElementById('gastosChart');
+        if (ctxGastos) {
+            const ctx = ctxGastos.getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Operativos', 'Administrativos', 'Marketing', 'Mantenimiento', 'Otros'],
+                    datasets: [{
+                        data: [35, 25, 20, 15, 5],
+                        backgroundColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(54, 162, 235)',
+                            'rgb(255, 205, 86)',
+                            'rgb(75, 192, 192)',
+                            'rgb(153, 102, 255)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error al inicializar gráficos:', error);
+        // Ocultar los contenedores de gráficos si hay error
+        const chartContainers = document.querySelectorAll('#flujoCajaChart, #gastosChart');
+        chartContainers.forEach(container => {
+            if (container.parentElement) {
+                container.parentElement.style.display = 'none';
+            }
+        });
+            }
+    }
+</script>
+
+<style>
+/* Estilos para impresión del comprobante */
+@media print {
+    .modal-header,
+    .modal-footer,
+    .btn-close {
+        display: none !important;
+    }
+    
+    .modal-dialog {
+        max-width: 100% !important;
+        margin: 0 !important;
+    }
+    
+    .modal-content {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .modal-body {
+        padding: 0 !important;
+    }
+    
+    .comprobante-print {
+        padding: 20px;
+    }
+    
+    .comprobante-print .header {
+        border-bottom: 2px solid #333 !important;
+        padding-bottom: 20px !important;
+    }
+    
+    .comprobante-print .footer {
+        border-top: 1px solid #ddd !important;
+        padding-top: 20px !important;
+        margin-top: 30px !important;
+    }
+}
+
+/* Estilos para vista previa del comprobante */
+.comprobante-print {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Estilos para vista de transacción */
+.transaccion-view {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.transaccion-view .table-borderless td {
+    padding: 8px 0;
+    border: none;
+}
+
+.transaccion-view .badge {
+    font-size: 0.9em;
+}
+
+.transaccion-view .card {
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.transaccion-view .alert {
+    border-left: 4px solid #17a2b8;
+    background-color: #f8f9fa;
+}
+
+.comprobante-print .header h2 {
+    color: #333;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.comprobante-print .header h3 {
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.comprobante-print .content h5 {
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.comprobante-print table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.comprobante-print table td {
+    padding: 8px 0;
+}
+
+.comprobante-print table td:first-child {
+    font-weight: bold;
+    color: #555;
+    width: 40%;
+}
+
+.comprobante-print table td:last-child {
+    color: #333;
+}
+
+.comprobante-print .footer {
+    border-top: 1px solid #ddd;
+    padding-top: 20px;
+    margin-top: 30px;
+    text-align: center;
+}
+</style>
+{% endblock %}

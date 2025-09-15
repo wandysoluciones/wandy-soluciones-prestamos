@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Wandy Soluciones y Préstamos{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/logo.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #004080 0%, #0066cc 100%);
+            color: white;
+            transition: transform 0.3s ease;
+        }
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 2px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            font-weight: bold;
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        .main-content.expanded {
+            margin-left: 0;
+        }
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1050;
+            background: linear-gradient(135deg, #004080 0%, #0066cc 100%);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .sidebar-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle.hidden {
+            display: none;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #004080 0%, #0066cc 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #003366 0%, #0052a3 100%);
+            transform: translateY(-1px);
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .stats-card.warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+        .stats-card.danger {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #004080 0%, #0066cc 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+        }
+        .form-control {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #004080;
+            box-shadow: 0 0 0 0.2rem rgba(0,64,128,0.25);
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-header img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        .content-wrapper {
+            padding: 20px;
+        }
+        .page-header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .page-title {
+            color: #004080;
+            margin: 0;
+            font-weight: bold;
+        }
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin: 0;
+        }
+        .breadcrumb-item a {
+            color: #004080;
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1040;
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+            .sidebar-toggle {
+                display: flex !important;
+            }
+        }
+        @media (min-width: 769px) {
+            .sidebar-toggle {
+                display: flex !important;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Botón para abrir/cerrar sidebar -->
+    <button class="sidebar-toggle" id="sidebarToggle" title="Abrir/Cerrar Menú">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo Wandy Soluciones" class="mb-3">
+                    <h4>Wandy Soluciones</h4>
+                    <p class="small">Gestión de Préstamos</p>
+                    <img src="{{ url_for('static', filename='assets/sello.png') }}" alt="Sello" class="mt-2" style="width: 40px; height: 40px; opacity: 0.8;">
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-home me-2"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'clientes' %}active{% endif %}" href="{{ url_for('clientes') }}">
+                            <i class="fas fa-users me-2"></i>Clientes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'prestamos' %}active{% endif %}" href="{{ url_for('prestamos') }}">
+                            <i class="fas fa-hand-holding-usd me-2"></i>Préstamos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'pagos' %}active{% endif %}" href="{{ url_for('pagos') }}">
+                            <i class="fas fa-money-check-alt me-2"></i>Pagos
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'atrasados' %}active{% endif %}" href="{{ url_for('atrasados') }}">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Atrasados
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'contabilidad' %}active{% endif %}" href="{{ url_for('contabilidad') }}">
+                            <i class="fas fa-chart-line me-2"></i>Contabilidad
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'reportes' %}active{% endif %}" href="{{ url_for('reportes') }}">
+                            <i class="fas fa-chart-bar me-2"></i>Reportes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'calculadora' %}active{% endif %}" href="{{ url_for('calculadora') }}">
+                            <i class="fas fa-calculator me-2"></i>Calculadora Financiera
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['chat', 'chat_usuario'] %}active{% endif %}" href="{{ url_for('chat') }}">
+                            <i class="fas fa-comments me-2"></i>Chat
+                            <span class="badge bg-danger ms-2" id="chat-badge" style="display: none;">0</span>
+                        </a>
+                    </li>
+                    {% if current_user.is_admin() %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['usuarios', 'nuevo_usuario', 'ver_usuario', 'editar_usuario'] %}active{% endif %}" href="{{ url_for('usuarios') }}">
+                            <i class="fas fa-user-cog me-2"></i>Gestión de Usuarios
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <div class="mt-auto p-3">
+                    <div class="text-center">
+                        <p class="small text-muted">Usuario: {{ current_user.nombre }}</p>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm w-100">
+                            <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content" id="mainContent">
+                <!-- Top navbar -->
+                <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4">
+                    <div class="container-fluid">
+                        <div class="d-flex align-items-center">
+                            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" style="width: 40px; height: 40px; margin-right: 15px;">
+                            <span class="navbar-brand">{% block page_title %}Dashboard{% endblock %}</span>
+                        </div>
+                        <div class="navbar-nav ms-auto">
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user me-2"></i>{{ current_user.nombre }} {{ current_user.apellidos }}
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{{ url_for('perfil') }}">
+                                        <i class="fas fa-user-edit me-2"></i>Mi Perfil
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Flash messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page content -->
+                <div class="content-wrapper">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Funcionalidad para abrir/cerrar sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            // Función para alternar sidebar
+            function toggleSidebar() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.toggle('show');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                }
+            }
+            
+            // Event listener para el botón
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            
+            // Cerrar sidebar al hacer clic en un enlace (en móviles)
+            if (window.innerWidth <= 768) {
+                const sidebarLinks = sidebar.querySelectorAll('.nav-link');
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        sidebar.classList.remove('show');
+                    });
+                });
+            }
+            
+            // Ajustar en cambio de tamaño de ventana
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                    sidebar.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                }
+            });
+            
+            // Función para actualizar badge del chat
+            function actualizarBadgeChat() {
+                fetch('/api/chat/count-no-leidos')
+                    .then(response => response.json())
+                    .then(data => {
+                        const badge = document.getElementById('chat-badge');
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'inline';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    })
+                    .catch(error => console.error('Error al obtener conteo de mensajes:', error));
+            }
+            
+            // Actualizar badge al cargar la página
+            actualizarBadgeChat();
+            
+            // Actualizar badge cada 30 segundos
+            setInterval(actualizarBadgeChat, 30000);
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

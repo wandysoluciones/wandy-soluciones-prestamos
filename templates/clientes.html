@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block title %}Clientes - Wandy Soluciones{% endblock %}
+{% block page_title %}Clientes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Gestión de Clientes</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Clientes</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('nuevo_cliente') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Nuevo Cliente
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros y búsqueda -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar clientes...">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="filterProvincia">
+                    <option value="">Todas las provincias</option>
+                    {% for provincia in provincias %}
+                    <option value="{{ provincia }}" {{ 'selected' if provincia == provincia_filter }}>{{ provincia }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-outline-secondary w-100" id="exportBtn">
+                    <i class="fas fa-download me-2"></i>Exportar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de clientes -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-users me-2"></i>Lista de Clientes
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if clientes.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Documento</th>
+                        <th>Teléfono</th>
+                        <th>Provincia</th>
+                        <th>Ocupación</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cliente in clientes.items %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3">
+                                    <i class="fas fa-user-circle fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ cliente.nombre }} {{ cliente.apellidos }}</strong>
+                                    {% if cliente.apodo %}
+                                    <br><small class="text-muted">"{{ cliente.apodo }}"</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ cliente.documento }}</td>
+                        <td>
+                            <div>
+                                <i class="fas fa-phone me-1"></i>{{ cliente.telefono_principal }}
+                                {% if cliente.whatsapp %}
+                                <br><i class="fab fa-whatsapp me-1 text-success"></i>{{ cliente.whatsapp }}
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark">{{ cliente.provincia }}</span>
+                        </td>
+                        <td>{{ cliente.ocupacion }}</td>
+                        <td>
+                            {% if cliente.activo %}
+                            <span class="badge bg-success">Activo</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="verCliente({{ cliente.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                        onclick="editarCliente({{ cliente.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                        onclick="verPrestamos({{ cliente.id }})">
+                                    <i class="fas fa-hand-holding-usd"></i>
+                                </button>
+                                {% if current_user.is_admin() %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="eliminarCliente({{ cliente.id }}, '{{ cliente.nombre }} {{ cliente.apellidos }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if clientes.pages > 1 %}
+        <nav aria-label="Paginación de clientes">
+            <ul class="pagination justify-content-center">
+                {% if clientes.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('clientes', page=clientes.prev_num) }}">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in clientes.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != clientes.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('clientes', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if clientes.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('clientes', page=clientes.next_num) }}">
+                        Siguiente <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay clientes registrados</h5>
+            <p class="text-muted">Comienza registrando tu primer cliente</p>
+            <a href="{{ url_for('nuevo_cliente') }}" class="btn btn-primary">
+                <i class="fas fa-user-plus me-2"></i>Registrar Cliente
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para ver detalles del cliente -->
+<div class="modal fade" id="clienteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="clienteModalBody">
+                <!-- Contenido del modal -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="editarCliente()">Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Filtro por provincia
+document.getElementById('filterProvincia').addEventListener('change', function() {
+    const provincia = this.value;
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const provinciaCell = row.querySelector('td:nth-child(4)').textContent;
+        row.style.display = !provincia || provinciaCell.includes(provincia) ? '' : 'none';
+    });
+});
+
+// Función para ver cliente
+function verCliente(clienteId) {
+    const modal = new bootstrap.Modal(document.getElementById('clienteModal'));
+    document.getElementById('clienteModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando información del cliente...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // Hacer llamada AJAX para obtener datos del cliente
+    fetch(`/api/clientes/${clienteId}/detalle`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const cliente = data.data.cliente;
+                const prestamos = data.data.prestamos;
+                
+                let prestamosHtml = '';
+                if (prestamos.length > 0) {
+                    prestamosHtml = `
+                        <div class="mt-3">
+                            <h6>Préstamos:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Monto</th>
+                                            <th>Tasa</th>
+                                            <th>Plazo</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${prestamos.map(p => `
+                                            <tr>
+                                                <td>RD$ ${p.monto.toLocaleString()}</td>
+                                                <td>${p.tasa_interes}%</td>
+                                                <td>${p.plazo_meses} meses</td>
+                                                <td><span class="badge bg-${p.estado === 'Activo' ? 'success' : 'secondary'}">${p.estado}</span></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    prestamosHtml = '<p class="text-muted mt-3">No tiene préstamos registrados.</p>';
+                }
+                
+                document.getElementById('clienteModalBody').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información Personal</h6>
+                            <p><strong>Nombre:</strong> ${cliente.nombre} ${cliente.apellidos}</p>
+                            ${cliente.apodo ? `<p><strong>Apodo:</strong> ${cliente.apodo}</p>` : ''}
+                            <p><strong>Documento:</strong> ${cliente.documento}</p>
+                            <p><strong>Nacionalidad:</strong> ${cliente.nacionalidad}</p>
+                            ${cliente.fecha_nacimiento ? `<p><strong>Fecha de Nacimiento:</strong> ${cliente.fecha_nacimiento}</p>` : ''}
+                            <p><strong>Sexo:</strong> ${cliente.sexo}</p>
+                            <p><strong>Estado Civil:</strong> ${cliente.estado_civil}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información de Contacto</h6>
+                            <p><strong>Teléfono Principal:</strong> ${cliente.telefono_principal}</p>
+                            ${cliente.telefono_otro ? `<p><strong>Otro Teléfono:</strong> ${cliente.telefono_otro}</p>` : ''}
+                            ${cliente.whatsapp ? `<p><strong>WhatsApp:</strong> ${cliente.whatsapp}</p>` : ''}
+                            <p><strong>Correo:</strong> ${cliente.correo}</p>
+                            <p><strong>Dirección:</strong> ${cliente.direccion}</p>
+                            <p><strong>Provincia:</strong> ${cliente.provincia}</p>
+                            <p><strong>Municipio:</strong> ${cliente.municipio}</p>
+                            <p><strong>Sector:</strong> ${cliente.sector}</p>
+                            ${cliente.ruta ? `<p><strong>Ruta:</strong> ${cliente.ruta}</p>` : ''}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información Laboral</h6>
+                            <p><strong>Ocupación:</strong> ${cliente.ocupacion}</p>
+                            <p><strong>Ingresos:</strong> RD$ ${cliente.ingresos.toLocaleString()}</p>
+                            <p><strong>Situación Laboral:</strong> ${cliente.situacion_laboral}</p>
+                            <p><strong>Lugar de Trabajo:</strong> ${cliente.lugar_trabajo}</p>
+                            <p><strong>Dirección del Trabajo:</strong> ${cliente.direccion_trabajo}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información del Sistema</h6>
+                            <p><strong>Fecha de Creación:</strong> ${cliente.fecha_creacion}</p>
+                            <p><strong>Estado:</strong> <span class="badge bg-${cliente.activo ? 'success' : 'danger'}">${cliente.activo ? 'Activo' : 'Inactivo'}</span></p>
+                        </div>
+                    </div>
+                    ${prestamosHtml}
+                `;
+            } else {
+                document.getElementById('clienteModalBody').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error al cargar la información del cliente: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('clienteModalBody').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error al cargar la información del cliente. Por favor, intente nuevamente.
+                </div>
+            `;
+        });
+}
+
+// Función para editar cliente
+function editarCliente(clienteId) {
+    if (clienteId) {
+        window.location.href = `/clientes/${clienteId}/editar`;
+    }
+}
+
+// Función para ver préstamos del cliente
+function verPrestamos(clienteId) {
+    window.location.href = `/prestamos?cliente_id=${clienteId}`;
+}
+
+// Función para eliminar cliente
+function eliminarCliente(clienteId, nombreCliente) {
+    if (confirm(`¿Está seguro de que desea eliminar al cliente "${nombreCliente}"?\n\nEsta acción eliminará también todos sus préstamos y pagos asociados.\n\n⚠️ Esta acción NO se puede deshacer.`)) {
+        // Crear un formulario temporal para enviar la solicitud DELETE
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/clientes/${clienteId}/eliminar`;
+        
+        // Agregar el formulario al DOM y enviarlo
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Exportar clientes
+document.getElementById('exportBtn').addEventListener('click', function() {
+    // Implementar exportación a CSV/Excel
+    alert('Función de exportación en desarrollo');
+});
+</script>
+{% endblock %}

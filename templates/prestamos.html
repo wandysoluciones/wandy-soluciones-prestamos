@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+
+{% block title %}Préstamos - Wandy Soluciones{% endblock %}
+{% block page_title %}Préstamos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Gestión de Préstamos</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Préstamos</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('nuevo_prestamo') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Préstamo
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros y búsqueda -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar préstamos...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Pagado">Pagado</option>
+                    <option value="Atrasado">Atrasado</option>
+                    <option value="Cancelado">Cancelado</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterFrecuencia">
+                    <option value="">Todas las frecuencias</option>
+                    <option value="Mensual">Mensual</option>
+                    <option value="Semanal">Semanal</option>
+                    <option value="SoloInteresesSinFecha">Solo Intereses</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" id="exportBtn">
+                    <i class="fas fa-download me-2"></i>Exportar
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-info w-100" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-2"></i>Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas rápidas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ prestamos.total }}</h4>
+                    <p class="mb-0">Total Préstamos</p>
+                </div>
+                <i class="fas fa-hand-holding-usd fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ prestamos.items|selectattr('estado', 'equalto', 'Activo')|list|length }}</h4>
+                    <p class="mb-0">Préstamos Activos</p>
+                </div>
+                <i class="fas fa-check-circle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ prestamos.items|selectattr('estado', 'equalto', 'Atrasado')|list|length }}</h4>
+                    <p class="mb-0">Préstamos Atrasados</p>
+                </div>
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ prestamos.items|selectattr('estado', 'equalto', 'Pagado')|list|length }}</h4>
+                    <p class="mb-0">Préstamos Pagados</p>
+                </div>
+                <i class="fas fa-flag-checkered fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de préstamos -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Lista de Préstamos
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if prestamos.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Monto</th>
+                        <th>Tasa (%)</th>
+                        <th>Plazo</th>
+                        <th>Frecuencia</th>
+                        <th>Estado</th>
+                        <th>Progreso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prestamo in prestamos.items %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3">
+                                    <i class="fas fa-user-circle fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}</strong>
+                                    <br><small class="text-muted">{{ prestamo.cliente.documento }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>RD$ {{ "%.2f"|format(prestamo.monto) }}</strong>
+                        </td>
+                        <td>{{ "%.2f"|format(prestamo.tasa_interes) }}%</td>
+                        <td>{{ prestamo.plazo_meses }} meses</td>
+                        <td>
+                            <span class="badge bg-info">{{ prestamo.frecuencia }}</span>
+                        </td>
+                        <td>
+                            {% if prestamo.estado == 'Activo' %}
+                                <span class="badge bg-success">Activo</span>
+                            {% elif prestamo.estado == 'Atrasado' %}
+                                <span class="badge bg-warning">Atrasado</span>
+                            {% elif prestamo.estado == 'Pagado' %}
+                                <span class="badge bg-primary">Pagado</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ prestamo.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set cuotas_pagadas = prestamo.cuotas|selectattr('estado', 'equalto', 'Pagada')|list|length %}
+                            {% set total_cuotas = prestamo.cuotas|length %}
+                            {% if total_cuotas > 0 %}
+                                {% set progreso = (cuotas_pagadas / total_cuotas * 100)|round %}
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ progreso }}%">
+                                        {{ cuotas_pagadas }}/{{ total_cuotas }}
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ progreso }}% completado</small>
+                            {% else %}
+                                <span class="text-muted">Sin cuotas</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="verPrestamo({{ prestamo.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                        onclick="editarPrestamo({{ prestamo.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                        onclick="verCuotas({{ prestamo.id }})">
+                                    <i class="fas fa-list-ol"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" 
+                                        onclick="registrarPago({{ prestamo.id }})">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                        onclick="imprimirPrestamo({{ prestamo.id }})">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                        onclick="generarContrato({{ prestamo.id }})">
+                                    <i class="fas fa-file-contract"></i>
+                                </button>
+                                {% if current_user.is_admin() %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="eliminarPrestamo({{ prestamo.id }}, {{ prestamo.monto }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if prestamos.pages > 1 %}
+        <nav aria-label="Paginación de préstamos">
+            <ul class="pagination justify-content-center">
+                {% if prestamos.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('prestamos', page=prestamos.prev_num) }}">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in prestamos.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != prestamos.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('prestamos', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if prestamos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('prestamos', page=prestamos.next_num) }}">
+                        Siguiente <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-hand-holding-usd fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay préstamos registrados</h5>
+            <p class="text-muted">Comienza registrando tu primer préstamo</p>
+            <a href="{{ url_for('nuevo_prestamo') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Registrar Préstamo
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para ver detalles del préstamo -->
+<div class="modal fade" id="prestamoModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Préstamo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="prestamoModalBody">
+                <!-- Contenido del modal -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-warning" onclick="editarPrestamo()">Editar</button>
+                <button type="button" class="btn btn-info" onclick="verCuotas()">Ver Cuotas</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para imprimir documento del préstamo -->
+<div class="modal fade" id="imprimirModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Documento del Préstamo - Vista de Impresión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="imprimirModalBody">
+                <!-- Contenido del documento para impresión -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Filtro por estado
+document.getElementById('filterEstado').addEventListener('change', function() {
+    const estado = this.value;
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const estadoCell = row.querySelector('td:nth-child(6)').textContent;
+        row.style.display = !estado || estadoCell.includes(estado) ? '' : 'none';
+    });
+});
+
+// Filtro por frecuencia
+document.getElementById('filterFrecuencia').addEventListener('change', function() {
+    const frecuencia = this.value;
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const frecuenciaCell = row.querySelector('td:nth-child(5)').textContent;
+        row.style.display = !frecuencia || frecuenciaCell.includes(frecuencia) ? '' : 'none';
+    });
+});
+
+// Función para ver préstamo
+function verPrestamo(prestamoId) {
+    const modal = new bootstrap.Modal(document.getElementById('prestamoModal'));
+    document.getElementById('prestamoModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando información del préstamo...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // Hacer llamada AJAX para obtener datos del préstamo
+    fetch(`/api/prestamos/${prestamoId}/detalle`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const prestamo = data.data.prestamo;
+                const cliente = data.data.cliente;
+                const cuotas = data.data.cuotas;
+                const pagos = data.data.pagos;
+                
+                let cuotasHtml = '';
+                if (cuotas.length > 0) {
+                    cuotasHtml = `
+                        <div class="mt-3">
+                            <h6>Cuotas:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Vencimiento</th>
+                                            <th>Capital</th>
+                                            <th>Interés</th>
+                                            <th>Total</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${cuotas.map(c => `
+                                            <tr>
+                                                <td>${c.numero_cuota}</td>
+                                                <td>${c.fecha_vencimiento}</td>
+                                                <td>RD$ ${c.monto_capital.toLocaleString()}</td>
+                                                <td>RD$ ${c.monto_interes.toLocaleString()}</td>
+                                                <td>RD$ ${c.monto_total.toLocaleString()}</td>
+                                                <td><span class="badge bg-${c.estado === 'Pagada' ? 'success' : c.estado === 'Pendiente' ? 'warning' : 'secondary'}">${c.estado}</span></td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    cuotasHtml = '<p class="text-muted mt-3">No hay cuotas registradas.</p>';
+                }
+                
+                let pagosHtml = '';
+                if (pagos.length > 0) {
+                    pagosHtml = `
+                        <div class="mt-3">
+                            <h6>Pagos Realizados:</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Monto</th>
+                                            <th>Tipo</th>
+                                            <th>Usuario</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${pagos.map(p => `
+                                            <tr>
+                                                <td>${p.fecha_pago}</td>
+                                                <td>RD$ ${p.monto.toLocaleString()}</td>
+                                                <td>${p.tipo_pago}</td>
+                                                <td>${p.usuario || 'N/A'}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    pagosHtml = '<p class="text-muted mt-3">No hay pagos registrados.</p>';
+                }
+                
+                document.getElementById('prestamoModalBody').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información del Préstamo</h6>
+                            <p><strong>ID:</strong> #${prestamo.id}</p>
+                            <p><strong>Monto:</strong> RD$ ${prestamo.monto.toLocaleString()}</p>
+                            <p><strong>Tasa de Interés:</strong> ${prestamo.tasa_interes}%</p>
+                            <p><strong>Plazo:</strong> ${prestamo.plazo_meses} meses</p>
+                            <p><strong>Frecuencia:</strong> ${prestamo.frecuencia}</p>
+                            <p><strong>Estado:</strong> <span class="badge bg-${prestamo.estado === 'Activo' ? 'success' : prestamo.estado === 'Atrasado' ? 'warning' : prestamo.estado === 'Pagado' ? 'primary' : 'secondary'}">${prestamo.estado}</span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Fechas</h6>
+                            <p><strong>Fecha de Creación:</strong> ${prestamo.fecha_creacion}</p>
+                            <p><strong>Primera Cuota:</strong> ${prestamo.fecha_primera_cuota}</p>
+                            <p><strong>Última Actualización:</strong> ${prestamo.fecha_ultima_actualizacion}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información del Cliente</h6>
+                            <p><strong>Nombre:</strong> ${cliente.nombre} ${cliente.apellidos}</p>
+                            <p><strong>Documento:</strong> ${cliente.documento}</p>
+                            <p><strong>Teléfono:</strong> ${cliente.telefono_principal}</p>
+                            <p><strong>Dirección:</strong> ${cliente.direccion}, ${cliente.sector}</p>
+                            <p><strong>Provincia:</strong> ${cliente.provincia}</p>
+                            <p><strong>Municipio:</strong> ${cliente.municipio}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Resumen Financiero</h6>
+                            <p><strong>Total a Pagar:</strong> RD$ ${prestamo.total_a_pagar.toLocaleString()}</p>
+                            <p><strong>Intereses Totales:</strong> RD$ ${prestamo.intereses_totales.toLocaleString()}</p>
+                            <p><strong>Capital Pendiente:</strong> RD$ ${prestamo.capital_pendiente.toLocaleString()}</p>
+                            <p><strong>Cuotas Pagadas:</strong> ${cuotas.filter(c => c.estado === 'Pagada').length}/${cuotas.length}</p>
+                            <p><strong>Progreso:</strong> ${cuotas.length > 0 ? Math.round((cuotas.filter(c => c.estado === 'Pagada').length / cuotas.length) * 100) : 0}%</p>
+                        </div>
+                    </div>
+                    ${cuotasHtml}
+                    ${pagosHtml}
+                `;
+                
+                // Actualizar las funciones de los botones del modal
+                window.prestamoActualId = prestamoId;
+            } else {
+                document.getElementById('prestamoModalBody').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error al cargar la información del préstamo: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('prestamoModalBody').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error al cargar la información del préstamo. Por favor, intente nuevamente.
+                </div>
+            `;
+        });
+}
+
+// Función para editar préstamo
+function editarPrestamo(prestamoId) {
+    if (prestamoId) {
+        window.location.href = `/prestamos/${prestamoId}/editar`;
+    }
+}
+
+// Función para eliminar préstamo
+function eliminarPrestamo(prestamoId, monto) {
+    if (confirm(`¿Está seguro de que desea eliminar el préstamo #${prestamoId}?\n\nMonto: RD$ ${monto}\n\nEsta acción eliminará también todas las cuotas y pagos asociados.\n\n⚠️ Esta acción NO se puede deshacer.`)) {
+        // Crear un formulario temporal para enviar la solicitud DELETE
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/prestamos/${prestamoId}/eliminar`;
+        
+        // Agregar el formulario al DOM y enviarlo
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+
+
+// Función para ver cuotas
+function verCuotas(prestamoId) {
+    window.location.href = `/prestamos/${prestamoId}/cuotas`;
+}
+
+// Función para registrar pago
+function registrarPago(prestamoId) {
+    window.location.href = `/pagos/nuevo?prestamo_id=${prestamoId}`;
+}
+
+// Función para imprimir préstamo
+function imprimirPrestamo(prestamoId) {
+    // Abrir en modal dentro de la aplicación
+    const modal = new bootstrap.Modal(document.getElementById('imprimirModal'));
+    document.getElementById('imprimirModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando documento del préstamo para impresión...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // Cargar el contenido del documento en el modal
+    fetch(`/prestamos/${prestamoId}/imprimir`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('imprimirModalBody').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error al cargar documento:', error);
+            document.getElementById('imprimirModalBody').innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <p>Error al cargar el documento para impresión</p>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            `;
+        });
+}
+
+// Función para generar contrato
+function generarContrato(prestamoId) {
+    window.location.href = `/prestamos/${prestamoId}/contrato`;
+}
+
+// Exportar préstamos
+document.getElementById('exportBtn').addEventListener('click', function() {
+    alert('Función de exportación en desarrollo');
+});
+
+// Actualizar datos
+document.getElementById('refreshBtn').addEventListener('click', function() {
+    location.reload();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Préstamo - Wandy Soluciones{% endblock %}
+{% block page_title %}Ver Préstamo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Detalles del Préstamo #{{ prestamo.id }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('prestamos') }}">Préstamos</a></li>
+                    <li class="breadcrumb-item active">Préstamo #{{ prestamo.id }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('editar_prestamo', prestamo_id=prestamo.id) }}" class="btn btn-warning me-2">
+                <i class="fas fa-edit me-2"></i>Editar
+            </a>
+            <a href="{{ url_for('prestamos') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Cliente -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>Información del Cliente
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> {{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}</p>
+                        <p><strong>Documento:</strong> {{ prestamo.cliente.documento }}</p>
+                        <p><strong>Teléfono:</strong> {{ prestamo.cliente.telefono_principal }}</p>
+                        <p><strong>Provincia:</strong> {{ prestamo.cliente.provincia }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Dirección:</strong> {{ prestamo.cliente.direccion }}, {{ prestamo.cliente.sector }}</p>
+                        <p><strong>Municipio:</strong> {{ prestamo.cliente.municipio }}</p>
+                        <p><strong>Ocupación:</strong> {{ prestamo.cliente.ocupacion }}</p>
+                        <p><strong>Ingresos:</strong> RD$ {{ prestamo.cliente.ingresos }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas del Préstamo -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ total_cuotas }}</h4>
+                    <p class="mb-0">Total Cuotas</p>
+                </div>
+                <i class="fas fa-list-ol fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ cuotas_pagadas }}</h4>
+                    <p class="mb-0">Cuotas Pagadas</p>
+                </div>
+                <i class="fas fa-check-circle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ cuotas_pendientes }}</h4>
+                    <p class="mb-0">Cuotas Pendientes</p>
+                </div>
+                <i class="fas fa-clock fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card danger">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ cuotas_atrasadas }}</h4>
+                    <p class="mb-0">Cuotas Atrasadas</p>
+                </div>
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalles del Préstamo -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Detalles del Préstamo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Monto:</strong></p>
+                        <p><strong>Tasa de Interés:</strong></p>
+                        <p><strong>Plazo:</strong></p>
+                        <p><strong>Frecuencia:</strong></p>
+                        <p><strong>Estado:</strong></p>
+                        <p><strong>Fecha de Creación:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="text-primary">RD$ {{ prestamo.monto }}</p>
+                        <p>{{ prestamo.tasa_interes }}%</p>
+                        <p>{{ prestamo.plazo_meses }} meses</p>
+                        <p>{{ prestamo.frecuencia }}</p>
+                        <p><span class="badge bg-{{ 'success' if prestamo.estado == 'Activo' else 'warning' }}">{{ prestamo.estado }}</span></p>
+                        <p>{{ prestamo.fecha_creacion.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator me-2"></i>Resumen Financiero
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Monto Total:</strong></p>
+                        <p><strong>Monto Pagado:</strong></p>
+                        <p><strong>Monto Pendiente:</strong></p>
+                        <p><strong>Progreso:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="text-primary">RD$ {{ "%.2f"|format(monto_total_prestamo) }}</p>
+                        <p class="text-success">RD$ {{ "%.2f"|format(monto_pagado) }}</p>
+                        <p class="mb-0">RD$ {{ "%.2f"|format(monto_pendiente) }}</p>
+                        <p class="mb-0">
+                            {% set progreso = (cuotas_pagadas / total_cuotas * 100) if total_cuotas > 0 else 0 %}
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-success" style="width: {{ progreso }}%">
+                                    {{ "%.1f"|format(progreso) }}%
+                                </div>
+                            </div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Cuotas -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list-ol me-2"></i>Cuotas del Préstamo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Capital</th>
+                                <th>Interés</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cuota in cuotas %}
+                            <tr>
+                                <td>{{ cuota.numero_cuota }}</td>
+                                <td>
+                                    {{ cuota.fecha_vencimiento.strftime('%d/%m/%Y') }}
+                                    {% if cuota.estado == 'Pendiente' and cuota.fecha_vencimiento < today %}
+                                        <span class="badge bg-danger ms-2">{{ ((today - cuota.fecha_vencimiento).days) }} días atraso</span>
+                                    {% endif %}
+                                </td>
+                                <td>RD$ {{ "%.2f"|format(cuota.monto_capital) }}</td>
+                                <td>RD$ {{ "%.2f"|format(cuota.monto_interes) }}</td>
+                                <td>RD$ {{ "%.2f"|format(cuota.monto_total) }}</td>
+                                <td>
+                                    {% if cuota.estado == 'Pagada' %}
+                                        <span class="badge bg-success">Pagada</span>
+                                    {% elif cuota.estado == 'Pendiente' %}
+                                        {% if cuota.fecha_vencimiento < today %}
+                                            <span class="badge bg-danger">Atrasada</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ cuota.estado }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if cuota.estado == 'Pendiente' %}
+                                        <a href="{{ url_for('ver_cuota', cuota_id=cuota.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('editar_cuota', cuota_id=cuota.id) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    {% else %}
+                                        <a href="{{ url_for('ver_cuota', cuota_id=cuota.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Historial de Pagos -->
+{% if pagos %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>Historial de Pagos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cuota</th>
+                                <th>Monto Pagado</th>
+                                <th>Tipo</th>
+                                <th>Usuario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pago in pagos %}
+                            <tr>
+                                <td>{{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>Cuota #{{ pago.cuota.numero_cuota }}</td>
+                                <td>RD$ {{ "%.2f"|format(pago.monto_pagado) }}</td>
+                                <td>{{ pago.tipo_pago }}</td>
+                                <td>{{ pago.usuario.nombre }}</td>
+                                <td>
+                                    <a href="{{ url_for('ver_pago', pago_id=pago.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('editar_pago', pago_id=pago.id) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Acciones del Préstamo -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>Acciones del Préstamo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-primary" onclick="imprimirPrestamo({{ prestamo.id }})">
+                        <i class="fas fa-print me-2"></i>Imprimir Documento
+                    </button>
+                    
+                    <form method="POST" action="{{ url_for('cambiar_estado_prestamo', prestamo_id=prestamo.id) }}" class="d-inline">
+                        <select name="estado" class="form-select d-inline-block w-auto me-2">
+                            <option value="Activo" {{ 'selected' if prestamo.estado == 'Activo' }}>Activo</option>
+                            <option value="Pausado" {{ 'selected' if prestamo.estado == 'Pausado' }}>Pausado</option>
+                            <option value="Cancelado" {{ 'selected' if prestamo.estado == 'Cancelado' }}>Cancelado</option>
+                            <option value="Finalizado" {{ 'selected' if prestamo.estado == 'Finalizado' }}>Finalizado</option>
+                        </select>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>Cambiar Estado
+                        </button>
+                    </form>
+                    
+                    <a href="{{ url_for('nuevo_pago') }}?prestamo_id={{ prestamo.id }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Registrar Pago
+                    </a>
+                    
+                    <button type="button" class="btn btn-info" onclick="recalcularCuotas()">
+                        <i class="fas fa-calculator me-2"></i>Recalcular Cuotas
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function recalcularCuotas() {
+    if (confirm('¿Está seguro de que desea recalcular todas las cuotas de este préstamo? Esto puede afectar los montos y fechas.')) {
+        // Aquí se implementaría la lógica para recalcular cuotas
+        alert('Función de recálculo en desarrollo');
+    }
+}
+
+// Función para imprimir préstamo
+function imprimirPrestamo(prestamoId) {
+    // Abrir en modal dentro de la aplicación
+    const modal = new bootstrap.Modal(document.getElementById('imprimirModal'));
+    document.getElementById('imprimirModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando documento del préstamo para impresión...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // Cargar el contenido del documento en el modal
+    fetch(`/prestamos/${prestamoId}/imprimir`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('imprimirModalBody').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error al cargar documento:', error);
+            document.getElementById('imprimirModalBody').innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <p>Error al cargar el documento para impresión</p>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            `;
+        });
+}
+</script>
+
+<!-- Modal para imprimir documento del préstamo -->
+<div class="modal fade" id="imprimirModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Documento del Préstamo - Vista de Impresión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="imprimirModalBody">
+                <!-- Contenido del documento para impresión -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - Wandy Soluciones{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Lista de conversaciones -->
+        <div class="col-md-4 col-lg-3">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>
+                        Conversaciones
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if conversaciones %}
+                        <div class="list-group list-group-flush">
+                                                        {% for conv_data in conversaciones %}
+                                {% set otro_usuario = conv_data.otro_usuario %}
+                                <div class="list-group-item d-flex align-items-center p-3">
+                                    <a href="{{ url_for('chat_usuario', usuario_id=otro_usuario.id) }}" 
+                                       class="d-flex align-items-center flex-grow-1 text-decoration-none">
+                                        <div class="avatar me-3">
+                                            <div class="avatar-circle bg-primary text-white">
+                                                {{ otro_usuario.nombre[0] }}{{ otro_usuario.apellidos[0] }}
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 text-dark">{{ otro_usuario.nombre }} {{ otro_usuario.apellidos }}</h6>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {% if conv_data.ultimo_mensaje %}
+                                                    {{ conv_data.ultimo_mensaje.fecha_envio.strftime('%d/%m %H:%M') }}
+                                                {% else %}
+                                                    Sin mensajes
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm ms-2" 
+                                            onclick="cerrarConversacion({{ conv_data.conversacion.id }})" 
+                                            title="Cerrar conversación">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-comments fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No hay conversaciones activas</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Usuarios disponibles -->
+            <div class="card mt-3">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        Usuarios Disponibles ({{ usuarios|length }})
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    <!-- Debug info -->
+                    <div class="p-2 bg-light border-bottom">
+                        <small class="text-muted">
+                            Debug: {{ usuarios|length }} usuarios encontrados
+                            {% for u in usuarios %}
+                                <br>ID: {{ u.id }} - {{ u.nombre }} {{ u.apellidos }} ({{ u.activo }})
+                            {% endfor %}
+                        </small>
+                    </div>
+                    
+                    {% if usuarios %}
+                        <div class="list-group list-group-flush">
+                            {% for usuario in usuarios %}
+                                <a href="{{ url_for('chat_usuario', usuario_id=usuario.id) }}" 
+                                   class="btn btn-outline-success w-100 text-start p-2 mb-1">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar me-2">
+                                            <div class="avatar-circle bg-success text-white">
+                                                {{ usuario.nombre[0] }}{{ usuario.apellidos[0] }}
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">{{ usuario.nombre }} {{ usuario.apellidos }}</h6>
+                                            <small class="text-muted">{{ usuario.cargo }}</small>
+                                        </div>
+                                        <span class="badge bg-success rounded-pill">
+                                            <i class="fas fa-circle"></i>
+                                        </span>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-0">No hay usuarios disponibles</p>
+                            <small class="text-muted">Debug: usuarios = {{ usuarios }}</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Área principal del chat -->
+        <div class="col-md-8 col-lg-9">
+            <div class="card h-100">
+                <div class="card-header bg-light">
+                    <div class="text-center">
+                        <h5 class="mb-0 text-muted">
+                            <i class="fas fa-comment-dots me-2"></i>
+                            Selecciona una conversación para comenzar a chatear
+                        </h5>
+                    </div>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-comments fa-4x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted">Bienvenido al Chat</h5>
+                        <p class="text-muted">
+                            Selecciona un usuario de la lista para comenzar una conversación
+                        </p>
+                        <div class="mt-3 d-flex gap-2">
+                            <button class="btn btn-primary" onclick="scrollToUsers()">
+                                <i class="fas fa-users me-2"></i>
+                                Ver Usuarios
+                            </button>
+                            {% if conversaciones %}
+                            <button class="btn btn-outline-danger" onclick="cerrarTodasConversaciones()">
+                                <i class="fas fa-times me-2"></i>
+                                Cerrar Todas
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(2px);
+}
+
+.list-group-item.active {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #1976d2;
+}
+
+.badge.bg-success .fas {
+    font-size: 8px;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 10px;
+}
+
+.card-header {
+    border-bottom: none;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+@media (max-width: 768px) {
+    .col-md-4 {
+        margin-bottom: 1rem;
+    }
+    
+    .avatar-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+    }
+}
+</style>
+
+<script>
+function scrollToUsers() {
+    const usersSection = document.querySelector('.card.mt-3');
+    if (usersSection) {
+        usersSection.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function cerrarConversacion(conversacionId) {
+    if (confirm('¿Estás seguro de que quieres cerrar esta conversación? Esta acción no se puede deshacer.')) {
+        fetch('/chat/cerrar-conversacion/' + conversacionId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+                alert.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(alert);
+                
+                // Recargar la página después de 2 segundos
+                setTimeout(function() {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                // Mostrar error
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+                alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+                alert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error al cerrar la conversación<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(alert);
+            }
+        })
+        .catch(function(error) {
+            console.error('Error al cerrar conversación:', error);
+            // Mostrar error
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-danger alert-dismissible fade show position-fixed';
+            alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+            alert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error de conexión<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+            document.body.appendChild(alert);
+        });
+    }
+}
+
+function cerrarTodasConversaciones() {
+    if (confirm('¿Estás seguro de que quieres cerrar TODAS las conversaciones? Esta acción no se puede deshacer.')) {
+        // Obtener todos los IDs de conversaciones
+        const conversaciones = [
+            {% for conv in conversaciones %}
+                {{ conv.conversacion.id }}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        
+        let cerradas = 0;
+        let total = conversaciones.length;
+        
+        conversaciones.forEach(function(conversacionId) {
+            fetch('/chat/cerrar-conversacion/' + conversacionId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cerradas++;
+                    if (cerradas === total) {
+                        // Mostrar mensaje de éxito
+                        const alert = document.createElement('div');
+                        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+                        alert.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+                        alert.innerHTML = '<i class="fas fa-check-circle me-2"></i>Todas las conversaciones han sido cerradas<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                        document.body.appendChild(alert);
+                        
+                        // Recargar la página después de 2 segundos
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 2000);
+                    }
+                }
+            })
+            .catch(function(error) {
+                console.error('Error al cerrar conversación:', error);
+            });
+        });
+    }
+}
+
+// Actualizar contador de mensajes nuevos cada 30 segundos
+setInterval(function() {
+    fetch('/api/chat/mensajes-nuevos')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.data.length > 0) {
+                // Mostrar notificación de mensajes nuevos
+                const notification = document.createElement('div');
+                notification.className = 'alert alert-info alert-dismissible fade show position-fixed';
+                notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 300px;';
+                notification.innerHTML = `
+                    <i class="fas fa-comment me-2"></i>
+                    Tienes ${data.data.length} mensaje(s) nuevo(s)
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(notification);
+                
+                // Auto-ocultar después de 5 segundos
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 5000);
+            }
+        })
+        .catch(error => console.error('Error al verificar mensajes nuevos:', error));
+}, 30000);
+</script>
+{% endblock %}

@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Pago - Wandy Soluciones{% endblock %}
+{% block page_title %}Editar Pago{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Editar Pago #{{ pago.id }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('pagos') }}">Pagos</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('ver_pago', pago_id=pago.id) }}">Pago #{{ pago.id }}</a></li>
+                    <li class="breadcrumb-item active">Editar</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('ver_pago', pago_id=pago.id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Editar Información del Pago
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="monto_pagado" class="form-label">Monto Pagado *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">RD$</span>
+                                    <input type="number" class="form-control" id="monto_pagado" name="monto_pagado" 
+                                           value="{{ pago.monto_pagado }}" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="monto_capital" class="form-label">Monto Capital *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">RD$</span>
+                                    <input type="number" class="form-control" id="monto_capital" name="monto_capital" 
+                                           value="{{ pago.monto_capital }}" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="monto_interes" class="form-label">Monto Interés *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">RD$</span>
+                                    <input type="number" class="form-control" id="monto_interes" name="monto_interes" 
+                                           value="{{ pago.monto_interes }}" step="0.01" min="0" required>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo_pago" class="form-label">Tipo de Pago *</label>
+                                <select class="form-select" id="tipo_pago" name="tipo_pago" required>
+                                    <option value="Normal" {{ 'selected' if pago.tipo_pago == 'Normal' }}>Normal</option>
+                                    <option value="Parcial" {{ 'selected' if pago.tipo_pago == 'Parcial' }}>Parcial</option>
+                                    <option value="Adelantado" {{ 'selected' if pago.tipo_pago == 'Adelantado' }}>Adelantado</option>
+                                    <option value="Extraordinario" {{ 'selected' if pago.tipo_pago == 'Extraordinario' }}>Extraordinario</option>
+                                    <option value="AbonoCapital" {{ 'selected' if pago.tipo_pago == 'AbonoCapital' }}>Abono al Capital</option>
+                                    <option value="SoloIntereses" {{ 'selected' if pago.tipo_pago == 'SoloIntereses' }}>Solo Intereses</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fecha_pago" class="form-label">Fecha de Pago *</label>
+                        <input type="datetime-local" class="form-control" id="fecha_pago" name="fecha_pago" 
+                               value="{{ pago.fecha_pago.strftime('%Y-%m-%dT%H:%M') }}" required>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                        <a href="{{ url_for('ver_pago', pago_id=pago.id) }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Información de la Cuota -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-list-ol me-2"></i>Cuota Asociada
+                </h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Número:</strong> #{{ pago.cuota.numero_cuota }}</p>
+                <p><strong>Vencimiento:</strong> {{ pago.cuota.fecha_vencimiento.strftime('%d/%m/%Y') }}</p>
+                <p><strong>Monto Total:</strong> RD$ {{ "%.2f"|format(pago.cuota.monto_total) }}</p>
+                <p><strong>Estado:</strong> 
+                    {% if pago.cuota.estado == 'Pagada' %}
+                        <span class="badge bg-success">Pagada</span>
+                    {% else %}
+                        <span class="badge bg-warning">{{ pago.cuota.estado }}</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        
+        <!-- Información del Préstamo -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-hand-holding-usd me-2"></i>Préstamo
+                </h6>
+            </div>
+            <div class="card-body">
+                <p><strong>ID:</strong> #{{ pago.cuota.prestamo.id }}</p>
+                <p><strong>Monto:</strong> RD$ {{ pago.cuota.prestamo.monto }}</p>
+                <p><strong>Tasa:</strong> {{ pago.cuota.prestamo.tasa_interes }}%</p>
+                <p><strong>Estado:</strong> 
+                    <span class="badge bg-{{ 'success' if pago.cuota.prestamo.estado == 'Activo' else 'warning' }}">
+                        {{ pago.cuota.prestamo.estado }}
+                    </span>
+                </p>
+            </div>
+        </div>
+        
+        <!-- Información del Cliente -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>Cliente
+                </h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> {{ pago.cuota.prestamo.cliente.nombre }} {{ pago.cuota.prestamo.cliente.apellidos }}</p>
+                <p><strong>Documento:</strong> {{ pago.cuota.prestamo.cliente.documento }}</p>
+                <p><strong>Teléfono:</strong> {{ pago.cuota.prestamo.cliente.telefono_principal }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen del Pago -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator me-2"></i>Resumen del Pago
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Total Cuota:</strong></p>
+                        <p><strong>Total Pagado:</strong></p>
+                        <p><strong>Diferencia:</strong></p>
+                        <p><strong>Estado:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="text-primary">RD$ {{ "%.2f"|format(pago.cuota.monto_total) }}</p>
+                        <p class="text-success">RD$ {{ "%.2f"|format(pago.monto_pagado) }}</p>
+                        {% set diferencia = pago.monto_pagado - pago.cuota.monto_total %}
+                        <p class="text-{{ 'success' if diferencia >= 0 else 'danger' }}">RD$ {{ "%.2f"|format(diferencia) }}</p>
+                        {% if diferencia >= 0 %}
+                            <p><span class="badge bg-success">Pago Completo</span></p>
+                        {% else %}
+                            <p><span class="badge bg-warning">Pago Parcial</span></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Información Adicional
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Días de Atraso:</strong></p>
+                        <p><strong>Interés por Atraso:</strong></p>
+                        <p><strong>Usuario:</strong></p>
+                        <p><strong>Fecha Registro:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        {% set dias_atraso = ((pago.fecha_pago.date() - pago.cuota.fecha_vencimiento).days) if pago.fecha_pago.date() > pago.cuota.fecha_vencimiento else 0 %}
+                        <p class="text-{{ 'danger' if dias_atraso > 0 else 'success' }}">{{ dias_atraso }} días</p>
+                        {% if dias_atraso > 0 %}
+                            {% set interes_atraso = pago.cuota.monto_interes * (dias_atraso * 0.01) %}
+                            <p class="text-danger">RD$ {{ "%.2f"|format(interes_atraso) }}</p>
+                        {% else %}
+                            <p class="text-success">RD$ 0.00</p>
+                        {% endif %}
+                        <p>{{ pago.usuario.nombre }}</p>
+                        <p>{{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const montoPagado = parseFloat(document.getElementById('monto_pagado').value);
+        const montoCapital = parseFloat(document.getElementById('monto_capital').value);
+        const montoInteres = parseFloat(document.getElementById('monto_interes').value);
+        
+        if (montoPagado <= 0) {
+            e.preventDefault();
+            alert('El monto pagado debe ser mayor a 0');
+            return false;
+        }
+        
+        if (montoCapital < 0) {
+            e.preventDefault();
+            alert('El monto de capital no puede ser negativo');
+            return false;
+        }
+        
+        if (montoInteres < 0) {
+            e.preventDefault();
+            alert('El monto de interés no puede ser negativo');
+            return false;
+        }
+        
+        // Verificar que la suma de capital e interés sea igual al monto pagado
+        const suma = montoCapital + montoInteres;
+        if (Math.abs(suma - montoPagado) > 0.01) {
+            e.preventDefault();
+            alert('La suma del capital e interés debe ser igual al monto pagado');
+            return false;
+        }
+    });
+    
+    // Auto-calcular monto de interés cuando cambie capital
+    const montoCapital = document.getElementById('monto_capital');
+    const montoInteres = document.getElementById('monto_interes');
+    const montoPagado = document.getElementById('monto_pagado');
+    
+    function calcularInteres() {
+        const capital = parseFloat(montoCapital.value) || 0;
+        const pagado = parseFloat(montoPagado.value) || 0;
+        const interes = Math.max(0, pagado - capital);
+        montoInteres.value = interes.toFixed(2);
+    }
+    
+    montoCapital.addEventListener('input', calcularInteres);
+    montoPagado.addEventListener('input', calcularInteres);
+    
+    // Auto-calcular monto de capital cuando cambie interés
+    montoInteres.addEventListener('input', function() {
+        const interes = parseFloat(montoInteres.value) || 0;
+        const pagado = parseFloat(montoPagado.value) || 0;
+        const capital = Math.max(0, pagado - interes);
+        montoCapital.value = capital.toFixed(2);
+    });
+});
+</script>
+{% endblock %}

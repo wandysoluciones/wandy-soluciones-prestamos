@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Usuario{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Detalles del Usuario</h1>
+        <div>
+            <a href="{{ url_for('editar_usuario', usuario_id=usuario.id) }}" class="d-none d-sm-inline-block btn btn-warning shadow-sm">
+                <i class="fas fa-edit fa-sm text-white-50"></i> Editar Usuario
+            </a>
+            <a href="{{ url_for('usuarios') }}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a Usuarios
+            </a>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Información del Usuario -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Usuario</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">ID del Usuario:</label>
+                                <div class="form-control-plaintext">{{ usuario.id }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nombre de Usuario:</label>
+                                <div class="form-control-plaintext">{{ usuario.username }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nombre:</label>
+                                <div class="form-control-plaintext">{{ usuario.nombre }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Apellidos:</label>
+                                <div class="form-control-plaintext">{{ usuario.apellidos }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Cargo:</label>
+                                <div class="form-control-plaintext">{{ usuario.cargo }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Rol:</label>
+                                <div class="form-control-plaintext">
+                                    <span class="badge badge-{{ 'primary' if usuario.rol == 'admin' else 'secondary' }}">
+                                        {{ usuario.rol|title }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Estado:</label>
+                                <div class="form-control-plaintext">
+                                    <span class="badge badge-{{ 'success' if usuario.activo else 'danger' }}">
+                                        {{ 'Activo' if usuario.activo else 'Inactivo' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Fecha de Creación:</label>
+                                <div class="form-control-plaintext">{{ usuario.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if usuario.ultimo_acceso %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Último Acceso:</label>
+                                <div class="form-control-plaintext">{{ usuario.ultimo_acceso.strftime('%d/%m/%Y %H:%M') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Acciones -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Acciones</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('editar_usuario', usuario_id=usuario.id) }}" class="btn btn-warning btn-block">
+                            <i class="fas fa-edit"></i> Editar Usuario
+                        </a>
+                        
+                        {% if usuario.id != current_user.id %}
+                            {% if usuario.activo %}
+                                <button type="button" class="btn btn-warning btn-block" onclick="desactivarUsuario()">
+                                    <i class="fas fa-user-times"></i> Desactivar Usuario
+                                </button>
+                            {% else %}
+                                <button type="button" class="btn btn-success btn-block" onclick="activarUsuario()">
+                                    <i class="fas fa-user-check"></i> Activar Usuario
+                                </button>
+                            {% endif %}
+                            
+                            <button type="button" class="btn btn-danger btn-block" onclick="confirmarEliminacion()">
+                                <i class="fas fa-trash"></i> Eliminar Usuario
+                            </button>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Nota:</strong> No puedes modificar tu propio usuario desde esta vista.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Sistema</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Permisos:</label>
+                        <div class="form-control-plaintext">
+                            {% if usuario.rol == 'admin' %}
+                                <span class="text-success">
+                                    <i class="fas fa-check-circle"></i> Acceso completo al sistema
+                                </span>
+                            {% else %}
+                                <span class="text-info">
+                                    <i class="fas fa-user"></i> Acceso básico al sistema
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Estado de la Cuenta:</label>
+                        <div class="form-control-plaintext">
+                            {% if usuario.activo %}
+                                <span class="text-success">
+                                    <i class="fas fa-check-circle"></i> Cuenta activa
+                                </span>
+                            {% else %}
+                                <span class="text-danger">
+                                    <i class="fas fa-times-circle"></i> Cuenta inactiva
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEliminarLabel">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que quieres eliminar al usuario <strong>{{ usuario.username }}</strong>?
+                <br><br>
+                <strong class="text-danger">Esta acción no se puede deshacer.</strong>
+                <br><br>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Advertencia:</strong> Si el usuario tiene registros asociados (pagos, etc.), no se podrá eliminar.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{{ url_for('eliminar_usuario', usuario_id=usuario.id) }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmarEliminacion() {
+    const modal = new bootstrap.Modal(document.getElementById('modalEliminar'));
+    modal.show();
+}
+
+function desactivarUsuario() {
+    if (confirm('¿Estás seguro de que quieres desactivar este usuario?\n\nEl usuario no podrá acceder al sistema hasta que sea reactivado.')) {
+        // Aquí podrías hacer una llamada AJAX para desactivar el usuario
+        // Por ahora, redirigimos a la página de edición
+        window.location.href = '{{ url_for("editar_usuario", usuario_id=usuario.id) }}';
+    }
+}
+
+function activarUsuario() {
+    if (confirm('¿Estás seguro de que quieres activar este usuario?\n\nEl usuario podrá acceder al sistema inmediatamente.')) {
+        // Aquí podrías hacer una llamada AJAX para activar el usuario
+        // Por ahora, redirigimos a la página de edición
+        window.location.href = '{{ url_for("editar_usuario", usuario_id=usuario.id) }}';
+    }
+}
+</script>
+{% endblock %}

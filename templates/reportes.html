@@ -1,0 +1,557 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - Wandy Soluciones{% endblock %}
+{% block page_title %}Reportes{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Generación de Reportes</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Reportes</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="generarReporteCompleto()">
+                <i class="fas fa-file-pdf me-2"></i>Reporte Completo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tipos de reportes -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('clientes')">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Reporte de Clientes</h5>
+                <p class="card-text">Lista completa de clientes con estadísticas</p>
+                <button class="btn btn-outline-primary">Generar</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('prestamos')">
+            <div class="card-body text-center">
+                <i class="fas fa-hand-holding-usd fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Reporte de Préstamos</h5>
+                <p class="card-text">Estado de préstamos y cuotas pendientes</p>
+                <button class="btn btn-outline-success">Generar</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('pagos')">
+            <div class="card-body text-center">
+                <i class="fas fa-money-bill-wave fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Reporte de Pagos</h5>
+                <p class="card-text">Historial de pagos y recaudaciones</p>
+                <button class="btn btn-outline-warning">Generar</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('atrasos')">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <h5 class="card-title">Reporte de Atrasos</h5>
+                <p class="card-text">Clientes con cuotas vencidas</p>
+                <button class="btn btn-outline-danger">Generar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('contabilidad')">
+            <div class="card-body text-center">
+                <i class="fas fa-calculator fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Reporte Contable</h5>
+                <p class="card-text">Balance de ingresos y gastos</p>
+                <button class="btn btn-outline-info">Generar</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('rendimiento')">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-purple mb-3"></i>
+                <h5 class="card-title">Reporte de Rendimiento</h5>
+                <p class="card-text">Análisis de rentabilidad y métricas</p>
+                <button class="btn btn-outline-purple">Generar</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('garantias')">
+            <div class="card-body text-center">
+                <i class="fas fa-shield-alt fa-3x text-secondary mb-3"></i>
+                <h5 class="card-title">Reporte de Garantías</h5>
+                <p class="card-text">Estado de garantías por préstamos</p>
+                <button class="btn btn-outline-secondary">Generar</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card report-card" onclick="generarReporte('personalizado')">
+            <div class="card-body text-center">
+                <i class="fas fa-cogs fa-3x text-dark mb-3"></i>
+                <h5 class="card-title">Reporte Personalizado</h5>
+                <p class="card-text">Configurar parámetros específicos</p>
+                <button class="btn btn-outline-dark">Configurar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuración de reportes -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-cog me-2"></i>Configuración de Reportes
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Fecha de Inicio</label>
+                <input type="date" class="form-control" id="fechaInicio">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Fecha de Fin</label>
+                <input type="date" class="form-control" id="fechaFin">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Formato</label>
+                <select class="form-select" id="formatoReporte">
+                    <option value="PDF">PDF</option>
+                    <option value="Excel">Excel</option>
+                    <option value="CSV">CSV</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Incluir Gráficos</label>
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" id="incluirGraficos" checked>
+                    <label class="form-check-label" for="incluirGraficos">Sí</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reportes recientes -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-history me-2"></i>Reportes Generados Recientemente
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if reportes_recientes %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Formato</th>
+                        <th>Tamaño</th>
+                        <th>Usuario</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reporte in reportes_recientes %}
+                    <tr data-reporte-id="{{ reporte.id }}">
+                        <td>
+                            {{ reporte.fecha_generacion.strftime('%d/%m/%Y') if reporte.fecha_generacion else 'N/A' }}
+                            <br><small class="text-muted">{{ reporte.fecha_generacion.strftime('%H:%M') if reporte.fecha_generacion else '' }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ reporte.tipo }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ reporte.descripcion }}</strong>
+                            {% if reporte.parametros %}
+                                <br><small class="text-muted">{{ reporte.parametros }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ reporte.formato }}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ reporte.tamano_archivo if reporte.tamano_archivo else 'N/A' }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ reporte.usuario.nombre }}</span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="descargarReporte({{ reporte.id }})">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                        onclick="verReporte({{ reporte.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="eliminarReporte({{ reporte.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay reportes generados</h5>
+            <p class="text-muted">Comienza generando tu primer reporte</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para reporte personalizado -->
+<div class="modal fade" id="reportePersonalizadoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configurar Reporte Personalizado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formReportePersonalizado">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Nombre del Reporte *</label>
+                                <input type="text" class="form-control" id="nombreReporte" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Reporte *</label>
+                                <select class="form-select" id="tipoReportePersonalizado" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="clientes">Clientes</option>
+                                    <option value="prestamos">Préstamos</option>
+                                    <option value="pagos">Pagos</option>
+                                    <option value="atrasos">Atrasos</option>
+                                    <option value="contabilidad">Contabilidad</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha de Inicio</label>
+                                <input type="date" class="form-control" id="fechaInicioPersonalizado">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha de Fin</label>
+                                <input type="date" class="form-control" id="fechaFinPersonalizado">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Filtros Adicionales</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filtroProvincia">
+                            <label class="form-check-label" for="filtroProvincia">Filtrar por provincia</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filtroEstado">
+                            <label class="form-check-label" for="filtroEstado">Filtrar por estado</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="filtroMonto">
+                            <label class="form-check-label" for="filtroMonto">Filtrar por rango de monto</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Columnas a Incluir</label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="columnaId" checked>
+                                    <label class="form-check-label" for="columnaId">ID</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="columnaNombre" checked>
+                                    <label class="form-check-label" for="columnaNombre">Nombre</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="columnaFecha" checked>
+                                    <label class="form-check-label" for="columnaFecha">Fecha</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="columnaMonto" checked>
+                                    <label class="form-check-label" for="columnaMonto">Monto</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="columnaEstado" checked>
+                                    <label class="form-check-label" for="columnaEstado">Estado</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="columnaObservaciones">
+                                    <label class="form-check-label" for="columnaObservaciones">Observaciones</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Formato de Salida</label>
+                        <select class="form-select" id="formatoPersonalizado">
+                            <option value="PDF">PDF</option>
+                            <option value="Excel">Excel</option>
+                            <option value="CSV">CSV</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observacionesReporte" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="generarReportePersonalizado()">Generar Reporte</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configurar fechas por defecto
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+    
+    document.getElementById('fechaInicio').value = lastMonth.toISOString().split('T')[0];
+    document.getElementById('fechaFin').value = today.toISOString().split('T')[0];
+    
+    document.getElementById('fechaInicioPersonalizado').value = lastMonth.toISOString().split('T')[0];
+    document.getElementById('fechaFinPersonalizado').value = today.toISOString().split('T')[0];
+});
+
+// Función para generar reporte específico
+function generarReporte(tipo) {
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+    const formato = document.getElementById('formatoReporte').value;
+    
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor seleccione las fechas de inicio y fin');
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    mostrarCarga(`Generando reporte de ${tipo}...`);
+    
+    // Construir URL con parámetros
+    const url = `/reportes/generar/${tipo}?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&formato=${formato}`;
+    
+    // Redirigir inmediatamente al backend
+    window.location.href = url;
+}
+
+// Función para generar reporte completo
+function generarReporteCompleto() {
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+    const formato = document.getElementById('formatoReporte').value;
+    
+    if (!fechaInicio || !fechaFin) {
+        alert('Por favor seleccione las fechas de inicio y fin');
+        return;
+    }
+    
+    mostrarCarga('Generando reporte completo...');
+    
+    // Generar reporte de clientes como reporte completo
+    const url = `/reportes/generar/clientes?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&formato=${formato}`;
+    window.location.href = url;
+}
+
+// Función para reporte personalizado
+function generarReportePersonalizado() {
+    const nombre = document.getElementById('nombreReporte').value;
+    const tipo = document.getElementById('tipoReportePersonalizado').value;
+    const fechaInicio = document.getElementById('fechaInicioPersonalizado').value;
+    const fechaFin = document.getElementById('fechaFinPersonalizado').value;
+    
+    if (!nombre || !tipo || !fechaInicio || !fechaFin) {
+        alert('Por favor complete todos los campos obligatorios');
+        return;
+    }
+    
+    mostrarCarga('Generando reporte personalizado...');
+    
+    // Generar el reporte personalizado
+    const url = `/reportes/generar/${tipo}?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&formato=PDF`;
+    window.location.href = url;
+}
+
+// Función para descargar reporte
+function descargarReporte(reporteId) {
+    // Implementar descarga del reporte
+    fetch(`/reportes/descargar/${reporteId}`)
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            }
+            throw new Error('Error al descargar el reporte');
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte_${reporteId}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(error => {
+            alert('Error al descargar el reporte: ' + error.message);
+        });
+}
+
+// Función para ver reporte
+function verReporte(reporteId) {
+    // Abrir el reporte en una nueva pestaña para vista previa
+    window.open(`/reportes/ver/${reporteId}`, '_blank');
+}
+
+// Función para eliminar reporte
+function eliminarReporte(reporteId) {
+    if (confirm('¿Está seguro de que desea eliminar este reporte?')) {
+        fetch(`/reportes/eliminar/${reporteId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                // Eliminar el elemento del DOM
+                const reporteElement = document.querySelector(`[data-reporte-id="${reporteId}"]`);
+                if (reporteElement) {
+                    reporteElement.remove();
+                }
+                alert('Reporte eliminado exitosamente');
+                // Recargar la página para actualizar la lista
+                location.reload();
+            } else {
+                throw new Error('Error al eliminar el reporte');
+            }
+        })
+        .catch(error => {
+            alert('Error al eliminar el reporte: ' + error.message);
+        });
+    }
+}
+
+// Función para mostrar carga
+function mostrarCarga(mensaje) {
+    // Crear overlay de carga
+    const overlay = document.createElement('div');
+    overlay.id = 'loadingOverlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    `;
+    
+    overlay.innerHTML = `
+        <div class="text-center text-white">
+            <div class="spinner-border mb-3" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <h5>${mensaje}</h5>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+}
+
+// Función para ocultar carga
+function ocultarCarga() {
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// Hacer las tarjetas de reporte clickeables
+document.querySelectorAll('.report-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-5px)';
+        this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = 'none';
+    });
+});
+</script>
+
+<style>
+.report-card {
+    transition: all 0.3s ease;
+    border: 1px solid #dee2e6;
+}
+
+.report-card:hover {
+    border-color: #007bff;
+}
+
+.report-card .card-body {
+    padding: 1.5rem;
+}
+
+.report-card i {
+    transition: transform 0.3s ease;
+}
+
+.report-card:hover i {
+    transform: scale(1.1);
+}
+</style>
+{% endblock %}

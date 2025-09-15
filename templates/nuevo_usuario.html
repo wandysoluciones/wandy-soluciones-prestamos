@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Usuario{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Crear Nuevo Usuario</h1>
+        <a href="{{ url_for('usuarios') }}" class="d-none d-sm-inline-block btn btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver a Usuarios
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Información del Usuario</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('nuevo_usuario') }}">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Nombre de Usuario *</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                            <div class="form-text">El nombre de usuario debe ser único en el sistema.</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña *</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="form-text">Mínimo 6 caracteres.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="apellidos" class="form-label">Apellidos *</label>
+                            <input type="text" class="form-control" id="apellidos" name="apellidos" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="cargo" class="form-label">Cargo *</label>
+                            <input type="text" class="form-control" id="cargo" name="cargo" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="rol" class="form-label">Rol *</label>
+                            <select class="form-select" id="rol" name="rol" required>
+                                <option value="">Seleccionar rol</option>
+                                <option value="empleado">Empleado</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                            <div class="form-text">
+                                <strong>Empleado:</strong> Acceso básico al sistema<br>
+                                <strong>Administrador:</strong> Acceso completo y gestión de usuarios
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Nota:</strong> Los usuarios creados estarán activos por defecto y podrán acceder al sistema inmediatamente.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Crear Usuario
+                        </button>
+                        <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Validación del formulario
+    $('form').on('submit', function(e) {
+        const password = $('#password').val();
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('La contraseña debe tener al menos 6 caracteres.');
+            $('#password').focus();
+            return false;
+        }
+    });
+
+    // Validación en tiempo real del nombre de usuario
+    $('#username').on('blur', function() {
+        const username = $(this).val();
+        if (username.length > 0) {
+            // Aquí podrías hacer una validación AJAX para verificar si el username ya existe
+            if (username.length < 3) {
+                $(this).addClass('is-invalid');
+                $(this).next('.invalid-feedback').remove();
+                $(this).after('<div class="invalid-feedback">El nombre de usuario debe tener al menos 3 caracteres.</div>');
+            } else {
+                $(this).removeClass('is-invalid');
+                $(this).next('.invalid-feedback').remove();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

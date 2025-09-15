@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante de Pago - {{ pago.id }}</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .recibo-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: #fff;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .company-slogan {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px 25px;
+        }
+        
+        .section-title {
+            color: #667eea;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .info-value {
+            font-weight: 500;
+            color: #212529;
+        }
+        
+        .amount-highlight {
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .separator {
+            border-top: 2px dotted #dee2e6;
+            margin: 25px 0;
+        }
+        
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .signature-box {
+            text-align: center;
+            flex: 1;
+            margin: 0 10px;
+        }
+        
+        .signature-line {
+            border-bottom: 1px solid #333;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .signature-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            opacity: 0.1;
+            font-size: 12px;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .print-button:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .download-button {
+            position: fixed;
+            top: 20px;
+            right: 200px;
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .download-button:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.6);
+        }
+        
+        .email-button {
+            position: fixed;
+            top: 20px;
+            right: 380px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .email-button:hover {
+            background: #e55a2b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.6);
+        }
+        
+        .email-button {
+            position: fixed;
+            top: 20px;
+            right: 380px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .email-button:hover {
+            background: #e55a2b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 53, 0.6);
+        }
+        
+        .date-time {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #6c757d;
+        }
+        
+        .receipt-number {
+            text-align: center;
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        
+        .sello-section {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .sello-img {
+            width: 200px;
+            height: 200px;
+            object-fit: contain;
+            opacity: 0.4;
+        }
+        
+        .content {
+            padding: 30px 25px;
+        }
+        
+        /* Modal para envío de email */
+        .email-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .email-modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .email-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .email-modal-title {
+            color: #667eea;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: #000;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn-send {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn-send:hover {
+            background: #218838;
+        }
+        
+        .btn-send:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">
+        🖨️ Imprimir Recibo
+    </button>
+    
+    <button class="download-button no-print" onclick="descargarPDF()">
+        📥 Descargar PDF
+    </button>
+    
+    <button class="email-button no-print" onclick="mostrarModalEmail()">
+        📧 Enviar por Email
+    </button>
+    
+    <button class="email-button no-print" onclick="mostrarModalEmail()">
+        📧 Enviar por Email
+    </button>
+    
+    <div class="recibo-container">
+        <!-- Sello como watermark detrás del contenido -->
+        <div class="sello-section">
+            <img src="{{ url_for('static', filename='assets/sello.png') }}" alt="Sello" class="sello-img">
+        </div>
+        
+        <div class="header">
+                    <div class="logo">
+            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo Wandy">
+        </div>
+            <div class="company-name">WANDY SOLUCIONES Y PRÉSTAMOS</div>
+            <div class="company-slogan">Soluciones financieras a tu alcance</div>
+            <div class="watermark">WANDY SOLUCIONES Y PRÉSTAMOS</div>
+        </div>
+        
+        <div class="content">
+            <div class="receipt-number">
+                <strong>Comprobante #{{ pago.id }}</strong>
+            </div>
+            
+            <div class="date-time">
+                <strong>Fecha de Emisión:</strong> {{ pago.fecha_pago.strftime('%d/%m/%Y') }}<br>
+                <strong>Hora:</strong> {{ pago.fecha_pago.strftime('%I:%M:%S %p') }}
+            </div>
+            
+            <div class="section-title">Información del Cliente</div>
+            <div class="info-row">
+                <span class="info-label">Cliente:</span>
+                <span class="info-value">{{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Préstamo:</span>
+                <span class="info-value">{{ prestamo.id }}</span>
+            </div>
+            {% if pago.cuota %}
+            <div class="info-row">
+                <span class="info-label">Cuota:</span>
+                <span class="info-value">{{ pago.cuota.numero_cuota }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="separator"></div>
+            
+            <div class="section-title">Detalles del Pago</div>
+            <div class="info-row">
+                <span class="info-label">Monto Total:</span>
+                <span class="info-value amount-highlight">RD${{ "%.2f"|format(pago.monto_pagado) }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Capital:</span>
+                <span class="info-value">RD${{ "%.2f"|format(pago.monto_capital) }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Intereses:</span>
+                <span class="info-value">RD${{ "%.2f"|format(pago.monto_interes) }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Fecha de Pago:</span>
+                <span class="info-value">{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</span>
+            </div>
+            
+            {% if pago.tipo_pago != 'Normal' %}
+            <div class="info-row">
+                <span class="info-label">Tipo de Pago:</span>
+                <span class="info-value">{{ pago.tipo_pago }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="separator"></div>
+            
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Firma del Cliente</div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Firma del Cajero</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para envío de email -->
+    <div id="emailModal" class="email-modal">
+        <div class="email-modal-content">
+            <div class="email-modal-header">
+                <span class="email-modal-title">📧 Enviar Recibo por Email</span>
+                <span class="close" onclick="cerrarModalEmail()">&times;</span>
+            </div>
+            
+            <form id="emailForm">
+                <div class="form-group">
+                    <label for="emailDestinatario" class="form-label">Email del Destinatario:</label>
+                    <input type="email" id="emailDestinatario" class="form-control" 
+                           value="{{ prestamo.cliente.correo }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="asuntoEmail" class="form-label">Asunto:</label>
+                    <input type="text" id="asuntoEmail" class="form-control" 
+                           value="Recibo de Pago #{{ pago.id }} - {{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="mensajeEmail" class="form-label">Mensaje Personalizado (opcional):</label>
+                    <textarea id="mensajeEmail" class="form-control" rows="3" 
+                              placeholder="Agregue un mensaje personalizado aquí..."></textarea>
+                </div>
+                
+                <div class="loading" id="emailLoading">
+                    <div class="spinner"></div>
+                    <p>Enviando email...</p>
+                </div>
+                
+                <div class="alert alert-success" id="emailSuccess">
+                    ✅ Email enviado exitosamente
+                </div>
+                
+                <div class="alert alert-danger" id="emailError">
+                    ❌ Error al enviar el email
+                </div>
+                
+                <button type="submit" class="btn-send" id="btnEnviar">
+                    📧 Enviar Recibo por Email
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Brevo Email Service -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <script>
+        // Configuración de Brevo (reemplazando EmailJS)
+        // Las funciones de envío ahora usan la API de Flask que se comunica con Brevo
+        
+        // Auto-print after 2 seconds (optional)
+        setTimeout(function() {
+            // window.print();
+        }, 2000);
+        
+        // Función para descargar PDF
+        function descargarPDF() {
+            // Obtener el ID del pago de la URL actual
+            const currentUrl = window.location.pathname;
+            // La URL actual es /pagos/{id}/imprimir, necesitamos extraer el ID
+            const pagoId = currentUrl.split('/')[2]; // /pagos/{id}/imprimir
+            window.location.href = `/pagos/${pagoId}/descargar-pdf`;
+        }
+        
+        // Funciones para el modal de email
+        function mostrarModalEmail() {
+            document.getElementById('emailModal').style.display = 'block';
+            // Limpiar mensajes anteriores
+            document.getElementById('emailSuccess').style.display = 'none';
+            document.getElementById('emailError').style.display = 'none';
+        }
+        
+        function cerrarModalEmail() {
+            document.getElementById('emailModal').style.display = 'none';
+        }
+        
+        // Cerrar modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('emailModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
+        // Manejar envío del formulario
+        document.getElementById('emailForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btnEnviar = document.getElementById('btnEnviar');
+            const loading = document.getElementById('emailLoading');
+            const success = document.getElementById('emailSuccess');
+            const error = document.getElementById('emailError');
+            
+            // Obtener datos del formulario
+            const emailDestinatario = document.getElementById('emailDestinatario').value;
+            const asunto = document.getElementById('asuntoEmail').value;
+            const mensajePersonalizado = document.getElementById('mensajeEmail').value;
+            
+            // Validar email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailDestinatario)) {
+                alert('Por favor, ingrese un email válido.');
+                return;
+            }
+            
+            // Mostrar loading
+            btnEnviar.disabled = true;
+            loading.style.display = 'block';
+            success.style.display = 'none';
+            error.style.display = 'none';
+            
+            try {
+                // Obtener datos del cliente y pago desde el DOM
+                const clienteNombre = document.querySelector('.info-value').textContent;
+                const prestamoId = window.location.pathname.split('/')[2];
+                const pagoId = window.location.pathname.split('/')[2];
+                
+                // Preparar parámetros para Brevo (a través de la API de Flask)
+                const emailParams = {
+                    to_email: emailDestinatario,
+                    to_name: clienteNombre,
+                    from_name: "Wandy Soluciones y Préstamos",
+                    message: mensajePersonalizado || `Estimado/a ${clienteNombre},\n\nAdjunto encontrará el recibo de pago #${pagoId} correspondiente a su préstamo #${prestamoId}.\n\nDetalles del pago:\n- Monto total: RD$${document.querySelector('.amount-highlight').textContent}\n- Capital: RD$${document.querySelectorAll('.info-value')[3].textContent}\n- Intereses: RD$${document.querySelectorAll('.info-value')[4].textContent}\n- Fecha: ${document.querySelectorAll('.info-value')[5].textContent}\n\nGracias por su confianza.\n\nSaludos cordiales,\nWandy Soluciones y Préstamos`,
+                    reply_to: "info@wandysoluciones.com"
+                };
+                
+                console.log('Parámetros del email:', emailParams);
+                
+                // Enviar email usando Brevo a través de la API de Flask
+                const brevoData = {
+                    cliente_email: emailDestinatario,
+                    cliente_nombre: clienteNombre,
+                    datos_pago: {
+                        pago_id: pagoId,
+                        prestamo_id: prestamoId,
+                        cuota_numero: '1', // Por defecto, se puede ajustar según la lógica del negocio
+                        monto_total: document.querySelector('.amount-highlight').textContent.replace('RD$', ''),
+                        monto_capital: document.querySelectorAll('.info-value')[3].textContent.replace('RD$', ''),
+                        monto_interes: document.querySelectorAll('.info-value')[4].textContent.replace('RD$', ''),
+                        fecha_pago: document.querySelectorAll('.info-value')[5].textContent
+                    }
+                };
+                
+                const result = await axios.post('/api/enviar-recibo-brevo', brevoData);
+                
+                // Mostrar éxito
+                success.style.display = 'block';
+                loading.style.display = 'none';
+                
+                // Cerrar modal después de 3 segundos
+                setTimeout(() => {
+                    cerrarModalEmail();
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Error al enviar email:', error);
+                
+                // Mostrar error más detallado
+                let errorMessage = 'Error desconocido';
+                if (error.text) {
+                    try {
+                        const errorData = JSON.parse(error.text);
+                        errorMessage = errorData.message || errorData.error || error.text;
+                    } catch (e) {
+                        errorMessage = error.text;
+                    }
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                document.getElementById('emailError').textContent = `❌ Error al enviar el email: ${errorMessage}`;
+                document.getElementById('emailError').style.display = 'block';
+                loading.style.display = 'none';
+            } finally {
+                btnEnviar.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

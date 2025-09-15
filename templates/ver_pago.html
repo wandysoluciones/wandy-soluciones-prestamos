@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Pago - Wandy Soluciones{% endblock %}
+{% block page_title %}Ver Pago{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Detalles del Pago #{{ pago.id }}</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('pagos') }}">Pagos</a></li>
+                    <li class="breadcrumb-item active">Pago #{{ pago.id }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('editar_pago', pago_id=pago.id) }}" class="btn btn-warning me-2">
+                <i class="fas fa-edit me-2"></i>Editar
+            </a>
+            <a href="{{ url_for('pagos') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Cliente -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user me-2"></i>Información del Cliente
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> {{ cliente.nombre }} {{ cliente.apellidos }}</p>
+                        <p><strong>Documento:</strong> {{ cliente.documento }}</p>
+                        <p><strong>Teléfono:</strong> {{ cliente.telefono_principal }}</p>
+                        <p><strong>Provincia:</strong> {{ cliente.provincia }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Dirección:</strong> {{ cliente.direccion }}, {{ cliente.sector }}</p>
+                        <p><strong>Municipio:</strong> {{ cliente.municipio }}</p>
+                        <p><strong>Ocupación:</strong> {{ cliente.ocupacion }}</p>
+                        <p><strong>Ingresos:</strong> RD$ {{ cliente.ingresos }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Préstamo -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-hand-holding-usd me-2"></i>Información del Préstamo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ID del Préstamo:</strong> #{{ prestamo.id }}</p>
+                        <p><strong>Monto del Préstamo:</strong> RD$ {{ prestamo.monto }}</p>
+                        <p><strong>Tasa de Interés:</strong> {{ prestamo.tasa_interes }}%</p>
+                        <p><strong>Plazo:</strong> {{ prestamo.plazo_meses }} meses</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Frecuencia:</strong> {{ prestamo.frecuencia }}</p>
+                        <p><strong>Estado:</strong> <span class="badge bg-{{ 'success' if prestamo.estado == 'Activo' else 'warning' }}">{{ prestamo.estado }}</span></p>
+                        <p><strong>Fecha de Creación:</strong> {{ prestamo.fecha_creacion.strftime('%d/%m/%Y') }}</p>
+                        <p><strong>Fecha Primera Cuota:</strong> {{ prestamo.fecha_primera_cuota.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información de la Cuota -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list-ol me-2"></i>Información de la Cuota
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Número de Cuota:</strong> #{{ cuota.numero_cuota }}</p>
+                        <p><strong>Fecha de Vencimiento:</strong> {{ cuota.fecha_vencimiento.strftime('%d/%m/%Y') }}</p>
+                        <p><strong>Estado:</strong> 
+                            {% if cuota.estado == 'Pagada' %}
+                                <span class="badge bg-success">Pagada</span>
+                            {% else %}
+                                <span class="badge bg-warning">{{ cuota.estado }}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Monto Capital:</strong> RD$ {{ "%.2f"|format(cuota.monto_capital) }}</p>
+                        <p><strong>Monto Interés:</strong> RD$ {{ "%.2f"|format(cuota.monto_interes) }}</p>
+                        <p><strong>Monto Total:</strong> RD$ {{ "%.2f"|format(cuota.monto_total) }}</p>
+                        <p><strong>Saldo Restante:</strong> RD$ {{ "%.2f"|format(cuota.saldo_restante) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detalles del Pago -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-money-bill-wave me-2"></i>Detalles del Pago
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>ID del Pago:</strong> #{{ pago.id }}</p>
+                        <p><strong>Monto Pagado:</strong> RD$ {{ "%.2f"|format(pago.monto_pagado) }}</p>
+                        <p><strong>Monto Capital:</strong> RD$ {{ "%.2f"|format(pago.monto_capital) }}</p>
+                        <p><strong>Monto Interés:</strong> RD$ {{ "%.2f"|format(pago.monto_interes) }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Tipo de Pago:</strong> {{ pago.tipo_pago }}</p>
+                        <p><strong>Fecha de Pago:</strong> {{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}</p>
+                        <p><strong>Usuario que Registró:</strong> {{ pago.usuario.nombre }} {{ pago.usuario.apellidos }}</p>
+                        <p><strong>Cargo del Usuario:</strong> {{ pago.usuario.cargo }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen del Pago -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calculator me-2"></i>Resumen del Pago
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Total Cuota:</strong></p>
+                        <p><strong>Total Pagado:</strong></p>
+                        <p><strong>Diferencia:</strong></p>
+                        <p><strong>Estado:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        <p class="text-primary">RD$ {{ "%.2f"|format(cuota.monto_total) }}</p>
+                        <p class="text-success">RD$ {{ "%.2f"|format(pago.monto_pagado) }}</p>
+                        {% set diferencia = pago.monto_pagado - cuota.monto_total %}
+                        <p class="text-{{ 'success' if diferencia >= 0 else 'danger' }}">RD$ {{ "%.2f"|format(diferencia) }}</p>
+                        {% if diferencia >= 0 %}
+                            <p><span class="badge bg-success">Pago Completo</span></p>
+                        {% else %}
+                            <p><span class="badge bg-warning">Pago Parcial</span></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Información Adicional
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p><strong>Días de Atraso:</strong></p>
+                        <p><strong>Interés por Atraso:</strong></p>
+                        <p><strong>Fecha de Registro:</strong></p>
+                    </div>
+                    <div class="col-6 text-end">
+                        {% set dias_atraso = ((pago.fecha_pago.date() - cuota.fecha_vencimiento).days) if pago.fecha_pago.date() > cuota.fecha_vencimiento else 0 %}
+                        <p class="text-{{ 'danger' if dias_atraso > 0 else 'success' }}">{{ dias_atraso }} días</p>
+                        {% if dias_atraso > 0 %}
+                            {% set interes_atraso = cuota.monto_interes * (dias_atraso * 0.01) %}
+                            <p class="text-danger">RD$ {{ "%.2f"|format(interes_atraso) }}</p>
+                        {% else %}
+                            <p class="text-success">RD$ 0.00</p>
+                        {% endif %}
+                        <p>{{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones del Pago -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-cogs me-2"></i>Acciones del Pago
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('editar_pago', pago_id=pago.id) }}" class="btn btn-warning">
+                        <i class="fas fa-edit me-2"></i>Editar Pago
+                    </a>
+                    
+                    <button type="button" class="btn btn-primary" onclick="imprimirRecibo({{ pago.id }})">
+                        <i class="fas fa-print me-2"></i>Imprimir Recibo
+                    </button>
+                    
+                    <a href="{{ url_for('descargar_recibo_pdf', pago_id=pago.id) }}" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>Descargar PDF
+                    </a>
+                    
+                    <form method="POST" action="{{ url_for('eliminar_pago', pago_id=pago.id) }}" class="d-inline" onsubmit="return confirm('¿Está seguro de que desea eliminar este pago?')">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Eliminar Pago
+                        </button>
+                    </form>
+                    
+                    <a href="{{ url_for('ver_prestamo', prestamo_id=prestamo.id) }}" class="btn btn-info">
+                        <i class="fas fa-eye me-2"></i>Ver Préstamo
+                    </a>
+                    
+                    <a href="{{ url_for('nuevo_pago') }}?prestamo_id={{ prestamo.id }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>Nuevo Pago
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Brevo Email Service -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+<!-- Modal para envío de email -->
+<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="emailModalLabel">
+                    <i class="fas fa-envelope me-2"></i>Enviar Recibo por Email
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form id="emailForm">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="emailDestinatario" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Email del Destinatario:
+                                </label>
+                                <input type="email" id="emailDestinatario" class="form-control" 
+                                       value="{{ prestamo.cliente.correo }}" required>
+                                <div class="form-text">Email del cliente para envío del recibo</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="asuntoEmail" class="form-label">
+                                    <i class="fas fa-tag me-2"></i>Asunto del Email:
+                                </label>
+                                <input type="text" id="asuntoEmail" class="form-control" 
+                                       value="Recibo de Pago #{{ pago.id }} - {{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="mensajeEmail" class="form-label">
+                            <i class="fas fa-comment me-2"></i>Mensaje Personalizado (opcional):
+                        </label>
+                        <textarea id="mensajeEmail" class="form-control" rows="4" 
+                                  placeholder="Agregue un mensaje personalizado aquí..."></textarea>
+                        <div class="form-text">Este mensaje se incluirá en el email junto con los detalles del pago</div>
+                    </div>
+                    
+                    <!-- Vista previa del recibo -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-eye me-2"></i>Vista Previa del Recibo
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Cliente:</strong> {{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}</p>
+                                    <p><strong>Préstamo:</strong> #{{ prestamo.id }}</p>
+                                    <p><strong>Pago:</strong> #{{ pago.id }}</p>
+                                    {% if pago.cuota %}
+                                    <p><strong>Cuota:</strong> #{{ pago.cuota.numero_cuota }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Monto Total:</strong> <span class="text-success">RD${{ "%.2f"|format(pago.monto_pagado) }}</span></p>
+                                    <p><strong>Capital:</strong> RD${{ "%.2f"|format(pago.monto_capital) }}</p>
+                                    <p><strong>Intereses:</strong> RD${{ "%.2f"|format(pago.monto_interes) }}</p>
+                                    <p><strong>Fecha:</strong> {{ pago.fecha_pago.strftime('%d/%m/%Y') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Estados de envío -->
+                    <div class="loading text-center" id="emailLoading" style="display: none;">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Enviando...</span>
+                        </div>
+                        <p class="mt-2 text-info">Enviando email...</p>
+                    </div>
+                    
+                    <div class="alert alert-success" id="emailSuccess" style="display: none;">
+                        <i class="fas fa-check-circle me-2"></i>✅ Email enviado exitosamente
+                    </div>
+                    
+                    <div class="alert alert-danger" id="emailError" style="display: none;">
+                        <i class="fas fa-exclamation-circle me-2"></i>❌ Error al enviar el email
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-info" id="btnEnviar">
+                        <i class="fas fa-paper-plane me-2"></i>Enviar Recibo por Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Configuración de Brevo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Sistema de Brevo listo');
+});
+
+// Función para mostrar modal de email
+function mostrarModalEmail() {
+    // Limpiar mensajes anteriores
+    document.getElementById('emailSuccess').style.display = 'none';
+    document.getElementById('emailError').style.display = 'none';
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('emailModal'));
+    modal.show();
+}
+
+// Manejar envío del formulario
+document.getElementById('emailForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const btnEnviar = document.getElementById('btnEnviar');
+    const loading = document.getElementById('emailLoading');
+    const success = document.getElementById('emailSuccess');
+    const error = document.getElementById('emailError');
+    
+    // Obtener datos del formulario
+    const emailDestinatario = document.getElementById('emailDestinatario').value;
+    const asunto = document.getElementById('asuntoEmail').value;
+    const mensajePersonalizado = document.getElementById('mensajeEmail').value;
+    
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailDestinatario)) {
+        alert('Por favor, ingrese un email válido.');
+        return;
+    }
+    
+    // Mostrar loading
+    btnEnviar.disabled = true;
+    loading.style.display = 'block';
+    success.style.display = 'none';
+    error.style.display = 'none';
+    
+                try {
+                // Obtener datos del cliente y pago
+                const clienteNombre = "{{ prestamo.cliente.nombre }} {{ prestamo.cliente.apellidos }}";
+                const prestamoId = "{{ prestamo.id }}";
+                const pagoId = "{{ pago.id }}";
+                const montoTotal = "{{ "%.2f"|format(pago.monto_pagado) }}";
+                const montoCapital = "{{ "%.2f"|format(pago.monto_capital) }}";
+                const montoInteres = "{{ "%.2f"|format(pago.monto_interes) }}";
+                const fechaPago = "{{ pago.fecha_pago.strftime('%d/%m/%Y') }}";
+                const numeroCuota = "{{ pago.cuota.numero_cuota if pago.cuota else 'N/A' }}";
+                
+                // Preparar datos para Brevo
+                const datosPago = {
+                    cliente_email: emailDestinatario,
+                    cliente_nombre: clienteNombre,
+                    datos_pago: {
+                        pago_id: pagoId,
+                        prestamo_id: prestamoId,
+                        cuota_numero: numeroCuota,
+                        monto_total: montoTotal,
+                        monto_capital: montoCapital,
+                        monto_interes: montoInteres,
+                        fecha_pago: fechaPago
+                    }
+                };
+                
+                console.log('📧 Enviando email con Brevo:', datosPago);
+                
+                // Enviar email usando Brevo
+                const response = await axios.post('/api/enviar-recibo-brevo', datosPago);
+                console.log('✅ Email enviado exitosamente:', response.data);
+        
+        // Mostrar éxito
+        success.style.display = 'block';
+        loading.style.display = 'none';
+        
+        // Cerrar modal después de 3 segundos
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('emailModal'));
+            modal.hide();
+        }, 3000);
+        
+                } catch (error) {
+                console.error('❌ Error al enviar email:', error);
+                
+                // Mostrar error más detallado
+                let errorMessage = 'Error desconocido';
+                if (error.response && error.response.data) {
+                    errorMessage = error.response.data.error || error.response.data.message || 'Error del servidor';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                document.getElementById('emailError').textContent = `❌ Error al enviar el email: ${errorMessage}`;
+                document.getElementById('emailError').style.display = 'block';
+                loading.style.display = 'none';
+            } finally {
+                btnEnviar.disabled = false;
+            }
+        });
+        
+        // Diagnóstico de Brevo
+        console.log('🔍 Diagnóstico de Brevo:');
+        console.log('- Sistema de Brevo configurado');
+        console.log('- API endpoint: /api/enviar-recibo-brevo');
+        
+        // Función para imprimir recibo
+        function imprimirRecibo(pagoId) {
+            // Abrir en modal dentro de la aplicación
+            const modal = new bootstrap.Modal(document.getElementById('imprimirModal'));
+            document.getElementById('imprimirModalBody').innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Cargando recibo para impresión...</p>
+                </div>
+            `;
+            modal.show();
+            
+            // Cargar el contenido del recibo en el modal
+            fetch(`/pagos/${pagoId}/imprimir`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('imprimirModalBody').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error al cargar recibo:', error);
+                    document.getElementById('imprimirModalBody').innerHTML = `
+                        <div class="text-center text-danger">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                            <p>Error al cargar el recibo para impresión</p>
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    `;
+                });
+        }
+</script>
+
+<!-- Modal para imprimir recibo -->
+<div class="modal fade" id="imprimirModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recibo de Pago - Vista de Impresión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="imprimirModalBody">
+                <!-- Contenido del recibo para impresión -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

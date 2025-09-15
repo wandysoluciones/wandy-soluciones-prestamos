@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Préstamo - Wandy Soluciones{% endblock %}
+{% block page_title %}Nuevo Préstamo{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Registrar Nuevo Préstamo</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('prestamos') }}">Préstamos</a></li>
+                    <li class="breadcrumb-item active">Nuevo Préstamo</li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="{{ url_for('prestamos') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<form method="POST" class="needs-validation" novalidate>
+    <div class="row">
+        <!-- Información del Cliente -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user me-2"></i>Información del Cliente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="cliente_id" class="form-label">Cliente *</label>
+                        <select class="form-select" id="cliente_id" name="cliente_id" required>
+                            <option value="">Seleccionar cliente</option>
+                            {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">
+                                {{ cliente.nombre }} {{ cliente.apellidos }} - {{ cliente.documento }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback">
+                            Por favor seleccione un cliente.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Préstamo -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-hand-holding-usd me-2"></i>Información del Préstamo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="monto" class="form-label">Monto (RD$) *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">RD$</span>
+                                <input type="number" class="form-control" id="monto" name="monto" 
+                                       step="0.01" min="100" max="50000" required>
+                            </div>
+                            <div class="invalid-feedback">
+                                Por favor ingrese un monto válido.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="tasa_interes" class="form-label">Tasa de Interés Mensual (%) *</label>
+                            <input type="number" class="form-control" id="tasa_interes" name="tasa_interes" 
+                                   step="0.01" min="0" max="100" value="10.00" required>
+                            <div class="invalid-feedback">
+                                Por favor ingrese una tasa de interés mensual válida.
+                            </div>
+                            <div class="form-text">Ejemplo: 10% mensual = $100 de interés por cada $1000 prestados</div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="plazo_meses" class="form-label">Plazo (meses) *</label>
+                            <input type="number" class="form-control" id="plazo_meses" name="plazo_meses" 
+                                   min="1" max="120" value="12" required>
+                            <div class="invalid-feedback">
+                                Por favor ingrese un plazo válido.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="frecuencia" class="form-label">Frecuencia *</label>
+                            <select class="form-select" id="frecuencia" name="frecuencia" required>
+                                <option value="">Seleccionar frecuencia</option>
+                                <option value="Mensual">Mensual</option>
+                                <option value="Quincenal">Quincenal</option>
+                                <option value="Semanal">Semanal</option>
+                                <option value="SoloInteresesSinFecha">Solo Intereses</option>
+                                <option value="Bullet">Bullet (Sin pagos hasta el final)</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                Por favor seleccione una frecuencia.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="fecha_primera_cuota" class="form-label">Fecha Primera Cuota *</label>
+                        <input type="date" class="form-control" id="fecha_primera_cuota" 
+                               name="fecha_primera_cuota" required>
+                        <div class="invalid-feedback">
+                            Por favor seleccione una fecha.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Garantías -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Garantías
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="tipo_garantia" class="form-label">Tipo de Garantía</label>
+                        <select class="form-select" id="tipo_garantia" name="tipo_garantia">
+                            <option value="">Seleccionar</option>
+                            <option value="Vehiculo">Vehículo</option>
+                            <option value="Propiedad">Propiedad</option>
+                            <option value="Electrodomesticos">Electrodomésticos</option>
+                            <option value="Joyas">Joyas</option>
+                            <option value="Otros">Otros</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="descripcion_garantia" class="form-label">Descripción de la Garantía</label>
+                        <textarea class="form-control" id="descripcion_garantia" name="descripcion_garantia" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="valor_garantia" class="form-label">Valor de la Garantía (RD$)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">RD$</span>
+                            <input type="number" class="form-control" id="valor_garantia" name="valor_garantia" 
+                                   step="0.01" min="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen del Préstamo -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calculator me-2"></i>Resumen del Préstamo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="resumen_prestamo">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-info-circle fa-2x mb-2"></i>
+                            <p>Complete los datos del préstamo para ver el resumen</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <div>
+                            <button type="button" class="btn btn-outline-info me-2" onclick="calcularResumen()">
+                                <i class="fas fa-calculator me-2"></i>Calcular Resumen
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-2"></i>Registrar Préstamo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+})();
+
+// Establecer fecha por defecto (próximo mes)
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    const fechaFormateada = nextMonth.toISOString().split('T')[0];
+    document.getElementById('fecha_primera_cuota').value = fechaFormateada;
+});
+
+// Función para calcular resumen del préstamo
+function calcularResumen() {
+    const monto = parseFloat(document.getElementById('monto').value) || 0;
+    const tasa = parseFloat(document.getElementById('tasa_interes').value) || 0;
+    const plazo = parseInt(document.getElementById('plazo_meses').value) || 0;
+    const frecuencia = document.getElementById('frecuencia').value;
+    
+    if (monto > 0 && tasa > 0 && plazo > 0) {
+        const tasaMensual = tasa / 100; // Tasa mensual directa
+        
+        let cuotaMensual, totalIntereses, totalPagar, descripcion;
+        
+        if (frecuencia === 'Mensual') {
+            const montoCapitalMensual = monto / plazo;
+            const interesMensual = monto * tasaMensual;
+            cuotaMensual = montoCapitalMensual + interesMensual;
+            totalIntereses = interesMensual * plazo;
+            totalPagar = monto + totalIntereses;
+            descripcion = `Capital: RD$ ${montoCapitalMensual.toFixed(2)} + Interés: RD$ ${interesMensual.toFixed(2)}`;
+        } else if (frecuencia === 'SoloInteresesSinFecha') {
+            const interesMensual = monto * tasaMensual;
+            cuotaMensual = interesMensual;
+            totalIntereses = interesMensual * plazo;
+            totalPagar = totalIntereses; // Solo intereses
+            descripcion = `Solo intereses mensuales`;
+        } else if (frecuencia === 'Bullet') {
+            const interesTotal = monto * tasaMensual * plazo;
+            cuotaMensual = 0; // No hay pagos mensuales
+            totalIntereses = interesTotal;
+            totalPagar = monto + totalIntereses;
+            descripcion = `Sin pagos hasta el final`;
+        } else {
+            // Para Quincenal y Semanal
+            const interesMensual = monto * tasaMensual;
+            cuotaMensual = interesMensual;
+            totalIntereses = interesMensual * plazo;
+            totalPagar = monto + totalIntereses;
+            descripcion = `Con pagos regulares`;
+        }
+        
+        document.getElementById('resumen_prestamo').innerHTML = `
+            <div class="row">
+                <div class="col-6">
+                    <p class="mb-1"><strong>Monto Principal:</strong></p>
+                    <p class="mb-1"><strong>Total Intereses:</strong></p>
+                    <p class="mb-1"><strong>Total a Pagar:</strong></p>
+                    <p class="mb-1"><strong>Cuota Mensual:</strong></p>
+                    <p class="mb-1"><strong>Descripción:</strong></p>
+                </div>
+                <div class="col-6 text-end">
+                    <p class="mb-1 text-primary">RD$ ${monto.toLocaleString()}</p>
+                    <p class="mb-1 text-warning">RD$ ${totalIntereses.toFixed(2)}</p>
+                    <p class="mb-1 text-success">RD$ ${totalPagar.toFixed(2)}</p>
+                    <p class="mb-1 text-info">RD$ ${cuotaMensual.toFixed(2)}</p>
+                    <p class="mb-1 text-muted"><small>${descripcion}</small></p>
+                </div>
+            </div>
+        `;
+    } else {
+        document.getElementById('resumen_prestamo').innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                <p>Complete todos los campos para ver el resumen</p>
+            </div>
+        `;
+    }
+}
+
+// Calcular resumen automáticamente al cambiar valores
+document.getElementById('monto').addEventListener('input', calcularResumen);
+document.getElementById('tasa_interes').addEventListener('input', calcularResumen);
+document.getElementById('plazo_meses').addEventListener('input', calcularResumen);
+</script>
+{% endblock %}

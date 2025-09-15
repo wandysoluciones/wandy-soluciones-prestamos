@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Transacción - Wandy Soluciones{% endblock %}
+{% block page_title %}Editar Transacción{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Editar Transacción</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('contabilidad') }}">Contabilidad</a></li>
+                    <li class="breadcrumb-item active">Editar Transacción</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-edit me-2"></i>Editar Transacción
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Descripción *</label>
+                                <input type="text" class="form-control" name="descripcion" value="{{ gasto.descripcion }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Monto (RD$) *</label>
+                                <input type="number" class="form-control" name="monto" value="{{ gasto.monto|abs }}" step="0.01" min="0" required>
+                                <small class="form-text text-muted">
+                                    {% if gasto.monto < 0 %}
+                                        <span class="text-success">Ingreso (monto negativo)</span>
+                                    {% else %}
+                                        <span class="text-danger">Gasto (monto positivo)</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Fecha *</label>
+                                <input type="date" class="form-control" name="fecha" value="{{ gasto.fecha.strftime('%Y-%m-%d') }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Categoría</label>
+                                <select class="form-select" name="tipo">
+                                    {% if gasto.monto < 0 %}
+                                        <!-- Opciones para ingresos -->
+                                        <option value="Pagos" {% if gasto.tipo == 'Pagos' %}selected{% endif %}>Pagos de Préstamos</option>
+                                        <option value="Intereses" {% if gasto.tipo == 'Intereses' %}selected{% endif %}>Intereses</option>
+                                        <option value="Garantias" {% if gasto.tipo == 'Garantias' %}selected{% endif %}>Garantías</option>
+                                        <option value="Otros" {% if gasto.tipo == 'Otros' %}selected{% endif %}>Otros Ingresos</option>
+                                    {% else %}
+                                        <!-- Opciones para gastos -->
+                                        <option value="Operativos" {% if gasto.tipo == 'Operativos' %}selected{% endif %}>Gastos Operativos</option>
+                                        <option value="Administrativos" {% if gasto.tipo == 'Administrativos' %}selected{% endif %}>Gastos Administrativos</option>
+                                        <option value="Marketing" {% if gasto.tipo == 'Marketing' %}selected{% endif %}>Marketing</option>
+                                        <option value="Mantenimiento" {% if gasto.tipo == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                                        <option value="Otros" {% if gasto.tipo == 'Otros' %}selected{% endif %}>Otros Gastos</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Información de la Transacción</label>
+                        <div class="alert alert-info">
+                            <strong>Tipo:</strong> 
+                            {% if gasto.monto < 0 %}
+                                <span class="badge bg-success">Ingreso</span>
+                            {% else %}
+                                <span class="badge bg-warning">Gasto</span>
+                            {% endif %}
+                            <br>
+                            <strong>Monto Original:</strong> RD$ {{ "%.2f"|format(gasto.monto|abs) }}
+                            <br>
+                            <strong>Fecha de Creación:</strong> {{ gasto.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('contabilidad') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

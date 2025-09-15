@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Wandy Soluciones{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title">Dashboard</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="text-end">
+            <p class="text-muted mb-0">Bienvenido, {{ current_user.nombre }}</p>
+            <small class="text-muted">{{ current_user.cargo }}</small>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas principales -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">{{ total_prestamos }}</h3>
+                    <p class="mb-0">Préstamos Activos</p>
+                </div>
+                <i class="fas fa-hand-holding-usd fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">{{ total_clientes }}</h3>
+                    <p class="mb-0">Total Clientes</p>
+                </div>
+                <i class="fas fa-users fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">{{ clientes_atrasados }}</h3>
+                    <p class="mb-0">Clientes Atrasados</p>
+                </div>
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0">RD$ {{ "%.2f"|format(capital_disponible) }}</h3>
+                    <p class="mb-0">Capital Disponible</p>
+                </div>
+                <i class="fas fa-dollar-sign fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones rápidas -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('nuevo_cliente') }}" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-2"></i>Nuevo Cliente
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('nuevo_prestamo') }}" class="btn btn-success w-100">
+                            <i class="fas fa-plus me-2"></i>Nuevo Préstamo
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('nuevo_pago') }}" class="btn btn-info w-100">
+                            <i class="fas fa-money-bill-wave me-2"></i>Registrar Pago
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{{ url_for('atrasados') }}" class="btn btn-warning w-100">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Ver Atrasados
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos y reportes -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Distribución de Préstamos
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="prestamosChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Pagos del Mes
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="pagosChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actividad reciente -->
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-clock me-2"></i>Actividad Reciente
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% if clientes_recientes or prestamos_recientes or pagos_recientes %}
+                        {% for cliente in clientes_recientes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-plus text-success me-2"></i>
+                            <strong>Nuevo cliente registrado</strong>
+                                <br><small class="text-muted">{{ cliente.nombre }} {{ cliente.apellidos }} - {{ cliente.fecha_creacion.strftime('%H:%M') }}</small>
+                        </div>
+                        <span class="badge bg-success rounded-pill">Cliente</span>
+                    </div>
+                        {% endfor %}
+                        
+                        {% for prestamo in prestamos_recientes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-hand-holding-usd text-primary me-2"></i>
+                            <strong>Nuevo préstamo aprobado</strong>
+                                <br><small class="text-muted">RD$ {{ "%.2f"|format(prestamo.monto) }} - {{ prestamo.fecha_creacion.strftime('%H:%M') }}</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">Préstamo</span>
+                    </div>
+                        {% endfor %}
+                        
+                        {% for pago in pagos_recientes %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-money-bill-wave text-info me-2"></i>
+                            <strong>Pago recibido</strong>
+                                <br><small class="text-muted">RD$ {{ "%.2f"|format(pago.monto_pagado) }} - {{ pago.fecha_pago.strftime('%H:%M') }}</small>
+                        </div>
+                        <span class="badge bg-info rounded-pill">Pago</span>
+                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-info-circle text-muted fa-2x mb-2"></i>
+                            <p class="text-muted mb-0">No hay actividad reciente</p>
+                            <small class="text-muted">Las transacciones aparecerán aquí</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-alt me-2"></i>Próximos Vencimientos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% if proximos_vencimientos %}
+                        {% for cuota in proximos_vencimientos %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-calendar-day text-warning me-2"></i>
+                                <strong>{{ cuota.prestamo.cliente.nombre }} {{ cuota.prestamo.cliente.apellidos }}</strong>
+                                <br><small class="text-muted">Cuota #{{ cuota.numero_cuota }} - RD$ {{ "%.2f"|format(cuota.monto_total) }}</small>
+                        </div>
+                            {% set dias_restantes = (cuota.fecha_vencimiento - fecha_actual).days %}
+                            {% if dias_restantes == 0 %}
+                                <span class="badge bg-danger rounded-pill">Hoy</span>
+                            {% elif dias_restantes == 1 %}
+                        <span class="badge bg-warning rounded-pill">Mañana</span>
+                            {% elif dias_restantes <= 3 %}
+                                <span class="badge bg-info rounded-pill">En {{ dias_restantes }} días</span>
+                            {% else %}
+                                <span class="badge bg-primary rounded-pill">En {{ dias_restantes }} días</span>
+                            {% endif %}
+                    </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+                            <p class="text-muted mb-0">No hay vencimientos próximos</p>
+                            <small class="text-muted">Todas las cuotas están al día</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Gráfico de distribución de préstamos
+const prestamosCtx = document.getElementById('prestamosChart').getContext('2d');
+const prestamosChart = new Chart(prestamosCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Activos', 'Pagados', 'Atrasados'],
+        datasets: [{
+            data: [{{ total_prestamos }}, {{ total_prestamos * 0.3 }}, {{ clientes_atrasados }}],
+            backgroundColor: [
+                '#28a745',
+                '#17a2b8',
+                '#ffc107'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Gráfico de pagos del mes
+const pagosCtx = document.getElementById('pagosChart').getContext('2d');
+const pagosChart = new Chart(pagosCtx, {
+    type: 'line',
+    data: {
+        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+        datasets: [{
+            label: 'Pagos Recibidos (RD$)',
+            data: [15000, 22000, 18000, 25000],
+            borderColor: '#004080',
+            backgroundColor: 'rgba(0, 64, 128, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'RD$ ' + value.toLocaleString();
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

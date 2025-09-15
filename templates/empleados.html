@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Empleados{% endblock %}
+
+{% block page_title %}Gestión de Empleados{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="page-title">
+                    <i class="fas fa-users me-2"></i>Empleados
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Empleados</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('nuevo_empleado') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Nuevo Empleado
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros de búsqueda -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('empleados') }}" class="row g-3">
+                <div class="col-md-4">
+                    <label for="q" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="q" name="q" 
+                           value="{{ request.args.get('q', '') }}" 
+                           placeholder="Nombre, apellidos o usuario">
+                </div>
+                <div class="col-md-3">
+                    <label for="rol" class="form-label">Rol</label>
+                    <select class="form-select" id="rol" name="rol">
+                        <option value="">Todos los roles</option>
+                        <option value="admin" {% if request.args.get('rol') == 'admin' %}selected{% endif %}>Administrador</option>
+                        <option value="usuario" {% if request.args.get('rol') == 'usuario' %}selected{% endif %}>Usuario</option>
+                        <option value="cajero" {% if request.args.get('rol') == 'cajero' %}selected{% endif %}>Cajero</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search me-2"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid">
+                        <a href="{{ url_for('empleados') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Limpiar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de empleados -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-list me-2"></i>Lista de Empleados
+                <span class="badge bg-primary ms-2">{{ empleados.total }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if empleados.items %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Cargo</th>
+                            <th>Rol</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for empleado in empleados.items %}
+                        <tr>
+                            <td>{{ empleado.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-3">
+                                        <div class="avatar-title bg-primary rounded-circle">
+                                            {{ empleado.nombre[0] }}{{ empleado.apellidos[0] }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ empleado.nombre }} {{ empleado.apellidos }}</h6>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ empleado.username }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ empleado.cargo }}</span>
+                            </td>
+                            <td>
+                                {% if empleado.rol == 'Administrador' %}
+                                    <span class="badge bg-danger">Administrador</span>
+                                {% elif empleado.rol == 'Cajero' %}
+                                    <span class="badge bg-warning">Cajero</span>
+                                {% elif empleado.rol == 'Supervisor' %}
+                                    <span class="badge bg-primary">Supervisor</span>
+                                {% else %}
+                                    <span class="badge bg-info">Empleado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if empleado.email %}
+                                    <a href="mailto:{{ empleado.email }}" class="text-decoration-none">
+                                        {{ empleado.email }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if empleado.telefono %}
+                                    <a href="tel:{{ empleado.telefono }}" class="text-decoration-none">
+                                        {{ empleado.telefono }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if empleado.id == current_user.id %}
+                                    <span class="badge bg-success">Activo (Tú)</span>
+                                {% else %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('editar_empleado', empleado_id=empleado.id) }}" 
+                                       class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if empleado.id != current_user.id %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            onclick="confirmarEliminacion({{ empleado.id }}, '{{ empleado.nombre }} {{ empleado.apellidos }}')"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            {% if empleados.pages > 1 %}
+            <nav aria-label="Paginación de empleados">
+                <ul class="pagination justify-content-center">
+                    {% if empleados.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('empleados', page=empleados.prev_num, q=request.args.get('q', ''), rol=request.args.get('rol', '')) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in empleados.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != empleados.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('empleados', page=page_num, q=request.args.get('q', ''), rol=request.args.get('rol', '')) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if empleados.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('empleados', page=empleados.next_num, q=request.args.get('q', ''), rol=request.args.get('rol', '')) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No se encontraron empleados</h5>
+                <p class="text-muted">No hay empleados registrados que coincidan con los criterios de búsqueda.</p>
+                <a href="{{ url_for('nuevo_empleado') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Registrar Primer Empleado
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que quieres eliminar al empleado <strong id="nombreEmpleado"></strong>?</p>
+                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="formEliminar" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarEliminacion(empleadoId, nombre) {
+    document.getElementById('nombreEmpleado').textContent = nombre;
+    document.getElementById('formEliminar').action = '/empleados/' + empleadoId + '/eliminar';
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalEliminar'));
+    modal.show();
+}
+</script>
+{% endblock %}

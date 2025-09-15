@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Empleado{% endblock %}
+
+{% block page_title %}Editar Empleado{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header de la página -->
+    <div class="page-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="page-title">
+                    <i class="fas fa-user-edit me-2"></i>Editar Empleado
+                </h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('empleados') }}">Empleados</a></li>
+                        <li class="breadcrumb-item active">Editar Empleado</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2"></i>Editar: {{ empleado.nombre }} {{ empleado.apellidos }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="nombre" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" 
+                                       value="{{ empleado.nombre }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el nombre.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="apellidos" class="form-label">Apellidos *</label>
+                                <input type="text" class="form-control" id="apellidos" name="apellidos" 
+                                       value="{{ empleado.apellidos }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese los apellidos.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">Nombre de Usuario</label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       value="{{ empleado.username }}" readonly>
+                                <div class="form-text">El nombre de usuario no se puede cambiar</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Nueva Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password">
+                                <div class="form-text">Dejar en blanco para mantener la contraseña actual</div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cargo" class="form-label">Cargo *</label>
+                                <input type="text" class="form-control" id="cargo" name="cargo" 
+                                       value="{{ empleado.cargo }}" required>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese el cargo.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="rol" class="form-label">Rol *</label>
+                                <select class="form-select" id="rol" name="rol" required>
+                                    <option value="Administrador" {% if empleado.rol == 'Administrador' %}selected{% endif %}>Administrador</option>
+                                    <option value="Cajero" {% if empleado.rol == 'Cajero' %}selected{% endif %}>Cajero</option>
+                                    <option value="Empleado" {% if empleado.rol == 'Empleado' %}selected{% endif %}>Empleado</option>
+                                    <option value="Supervisor" {% if empleado.rol == 'Supervisor' %}selected{% endif %}>Supervisor</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Por favor seleccione un rol.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ empleado.email or '' }}">
+                                <div class="form-text">Opcional</div>
+                            </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                       value="{{ empleado.telefono or '' }}">
+                                <div class="form-text">Opcional</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('empleados') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-2"></i>Actualizar Empleado
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación del formulario
+(function() {
+    'use strict';
+    window.addEventListener('load', function() {
+        var forms = document.getElementsByClassName('needs-validation');
+        var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    }, false);
+});
+
+// Validación de contraseña (si se ingresa)
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const feedback = this.nextElementSibling;
+    
+    if (password && password.length < 6) {
+        this.setCustomValidity('La contraseña debe tener al menos 6 caracteres');
+        feedback.textContent = 'La contraseña debe tener al menos 6 caracteres';
+    } else {
+        this.setCustomValidity('');
+        feedback.textContent = 'Dejar en blanco para mantener la contraseña actual';
+    }
+});
+</script>
+{% endblock %}

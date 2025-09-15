@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+
+{% block title %}Pagos - Wandy Soluciones{% endblock %}
+{% block page_title %}Pagos{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-money-bill-wave me-3"></i>Gestión de Pagos</h1>
+        <div>
+            <a href="{{ url_for('pago_extraordinario') }}" class="btn btn-warning me-2">
+                <i class="fas fa-plus me-2"></i>Pago Extraordinario
+            </a>
+            <a href="{{ url_for('nuevo_pago') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Pago
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros y búsqueda -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Buscar pagos...">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" id="filterTipo">
+                    <option value="">Todos los tipos</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Parcial">Parcial</option>
+                    <option value="Adelantado">Adelantado</option>
+                    <option value="Extraordinario">Extraordinario</option>
+                    <option value="AbonoCapital">Abono al Capital</option>
+                    <option value="SoloIntereses">Solo Intereses</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" class="form-control" id="filterFecha" placeholder="Fecha">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-secondary w-100" id="exportBtn">
+                    <i class="fas fa-download me-2"></i>Exportar
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-info w-100" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-2"></i>Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas rápidas -->
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ pagos.total if pagos.total else 0 }}</h4>
+                    <p class="mb-0">Total Pagos</p>
+                </div>
+                <i class="fas fa-money-bill-wave fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">RD$ {{ "%.2f"|format(pagos.items|sum(attribute='monto_pagado') if pagos.items else 0) }}</h4>
+                    <p class="mb-0">Total Recaudado</p>
+                </div>
+                <i class="fas fa-dollar-sign fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ pagos.items|selectattr('tipo_pago', 'equalto', 'Parcial')|list|length if pagos.items else 0 }}</h4>
+                    <p class="mb-0">Pagos Parciales</p>
+                </div>
+                <i class="fas fa-percentage fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ pagos.items|selectattr('tipo_pago', 'equalto', 'Adelantado')|list|length if pagos.items else 0 }}</h4>
+                    <p class="mb-0">Pagos Adelantados</p>
+                </div>
+                <i class="fas fa-forward fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ pagos.items|selectattr('tipo_pago', 'equalto', 'Extraordinario')|list|length if pagos.items else 0 }}</h4>
+                    <p class="mb-0">Pagos Extraordinarios</p>
+                </div>
+                <i class="fas fa-star fa-2x"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="stats-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0">{{ pagos.items|selectattr('tipo_pago', 'equalto', 'AbonoCapital')|list|length if pagos.items else 0 }}</h4>
+                    <p class="mb-0">Abonos al Capital</p>
+                </div>
+                <i class="fas fa-hand-holding-usd fa-2x"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de pagos -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-list me-2"></i>Lista de Pagos
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if pagos.items %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Préstamo</th>
+                        <th>Cuota</th>
+                        <th>Monto Pagado</th>
+                        <th>Tipo</th>
+                        <th>Fecha</th>
+                        <th>Usuario</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in pagos.items %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3">
+                                    <i class="fas fa-user-circle fa-2x text-primary"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ pago.cuota.prestamo.cliente.nombre }} {{ pago.cuota.prestamo.cliente.apellidos }}</strong>
+                                    <br><small class="text-muted">{{ pago.cuota.prestamo.cliente.documento }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <strong>RD$ {{ "%.2f"|format(pago.cuota.prestamo.monto) }}</strong>
+                            <br><small class="text-muted">#{{ pago.cuota.prestamo.id }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">Cuota #{{ pago.cuota.numero_cuota }}</span>
+                            <br><small class="text-muted">RD$ {{ "%.2f"|format(pago.cuota.monto_total) }}</small>
+                        </td>
+                        <td>
+                            <strong class="text-success">RD$ {{ "%.2f"|format(pago.monto_pagado) }}</strong>
+                        </td>
+                        <td>
+                            {% if pago.tipo_pago == 'Normal' %}
+                                <span class="badge bg-success">{{ pago.tipo_pago }}</span>
+                            {% elif pago.tipo_pago == 'Parcial' %}
+                                <span class="badge bg-warning">{{ pago.tipo_pago }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ pago.tipo_pago }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ pago.fecha_pago.strftime('%d/%m/%Y') if pago.fecha_pago else 'N/A' }}
+                            <br><small class="text-muted">{{ pago.fecha_pago.strftime('%H:%M') if pago.fecha_pago else '' }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ pago.usuario.nombre }}</span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary" 
+                                        onclick="verPago({{ pago.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                        onclick="editarPago({{ pago.id }})">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" 
+                                        onclick="enviarRecibo({{ pago.id }}, '{{ pago.cuota.prestamo.cliente.correo }}', '{{ pago.cuota.prestamo.cliente.nombre }} {{ pago.cuota.prestamo.cliente.apellidos }}')"
+                                        title="Enviar recibo por correo">
+                                    <i class="fas fa-envelope"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                        onclick="imprimirComprobante({{ pago.id }})">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success" 
+                                        onclick="descargarPDF({{ pago.id }})">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                                {% if current_user.is_admin() %}
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        onclick="eliminarPago({{ pago.id }}, {{ pago.monto_pagado }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if pagos.pages > 1 %}
+        <nav aria-label="Paginación de pagos">
+            <ul class="pagination justify-content-center">
+                {% if pagos.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('pagos', page=pagos.prev_num) }}">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in pagos.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != pagos.page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('pagos', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagos.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('pagos', page=pagos.next_num) }}">
+                        Siguiente <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-money-bill-wave fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No hay pagos registrados</h5>
+            <p class="text-muted">Comienza registrando tu primer pago</p>
+            <a href="{{ url_for('nuevo_pago') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Registrar Pago
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para ver detalles del pago -->
+<div class="modal fade" id="pagoModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Pago</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="pagoModalBody">
+                <!-- Contenido del modal -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="editarPago()">Editar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para imprimir recibo -->
+<div class="modal fade" id="imprimirModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recibo de Pago - Vista de Impresión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="imprimirModalBody">
+                <!-- Contenido del recibo para impresión -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-2"></i>Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Búsqueda en tiempo real
+document.getElementById('searchInput').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Filtro por tipo
+document.getElementById('filterTipo').addEventListener('change', function() {
+    const tipo = this.value;
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const tipoCell = row.querySelector('td:nth-child(5)').textContent;
+        row.style.display = !tipo || tipoCell.includes(tipo) ? '' : 'none';
+    });
+});
+
+// Filtro por fecha
+document.getElementById('filterFecha').addEventListener('change', function() {
+    const fecha = this.value;
+    const rows = document.querySelectorAll('tbody tr');
+    
+    rows.forEach(row => {
+        const fechaCell = row.querySelector('td:nth-child(6)').textContent;
+        row.style.display = !fecha || fechaCell.includes(fecha) ? '' : 'none';
+    });
+});
+
+// Función para ver pago
+function verPago(pagoId) {
+    const modal = new bootstrap.Modal(document.getElementById('pagoModal'));
+    document.getElementById('pagoModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando información del pago...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // Hacer llamada AJAX para obtener datos del pago
+    fetch(`/api/pagos/${pagoId}/detalle`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const pago = data.data.pago;
+                const cuota = data.data.cuota;
+                const prestamo = data.data.prestamo;
+                const cliente = data.data.cliente;
+                
+                let cuotaHtml = '';
+                if (cuota) {
+                    cuotaHtml = `
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información de la Cuota</h6>
+                            <p><strong>Número de Cuota:</strong> ${cuota.numero_cuota}</p>
+                            <p><strong>Monto Total:</strong> RD$ ${cuota.monto_total.toLocaleString()}</p>
+                            <p><strong>Monto Capital:</strong> RD$ ${cuota.monto_capital.toLocaleString()}</p>
+                            <p><strong>Monto Interés:</strong> RD$ ${cuota.monto_interes.toLocaleString()}</p>
+                            <p><strong>Fecha de Vencimiento:</strong> ${cuota.fecha_vencimiento}</p>
+                            <p><strong>Estado:</strong> <span class="badge bg-${cuota.estado === 'Pagada' ? 'success' : 'warning'}">${cuota.estado}</span></p>
+                        </div>
+                    `;
+                }
+                
+                let prestamoHtml = '';
+                if (prestamo) {
+                    prestamoHtml = `
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información del Préstamo</h6>
+                            <p><strong>Monto del Préstamo:</strong> RD$ ${prestamo.monto.toLocaleString()}</p>
+                            <p><strong>Tasa de Interés:</strong> ${prestamo.tasa_interes}%</p>
+                            <p><strong>Plazo:</strong> ${prestamo.plazo_meses} meses</p>
+                            <p><strong>Frecuencia:</strong> ${prestamo.frecuencia}</p>
+                        </div>
+                    `;
+                }
+                
+                let clienteHtml = '';
+                if (cliente) {
+                    clienteHtml = `
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información del Cliente</h6>
+                            <p><strong>Nombre:</strong> ${cliente.nombre}</p>
+                            <p><strong>Documento:</strong> ${cliente.documento}</p>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('pagoModalBody').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary">Información del Pago</h6>
+                            <p><strong>ID del Pago:</strong> #${pago.id}</p>
+                            <p><strong>Monto Pagado:</strong> RD$ ${pago.monto_pagado.toLocaleString()}</p>
+                            <p><strong>Monto Capital:</strong> RD$ ${pago.monto_capital.toLocaleString()}</p>
+                            <p><strong>Monto Interés:</strong> RD$ ${pago.monto_interes.toLocaleString()}</p>
+                            <p><strong>Tipo de Pago:</strong> <span class="badge bg-info">${pago.tipo_pago}</span></p>
+                            <p><strong>Fecha del Pago:</strong> ${pago.fecha_pago}</p>
+                            <p><strong>Registrado por:</strong> ${pago.usuario}</p>
+                        </div>
+                        ${cuotaHtml}
+                    </div>
+                    <div class="row mt-3">
+                        ${prestamoHtml}
+                        ${clienteHtml}
+                    </div>
+                `;
+            } else {
+                document.getElementById('pagoModalBody').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error al cargar la información del pago: ${data.error}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('pagoModalBody').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error al cargar la información del pago. Por favor, intente nuevamente.
+                </div>
+            `;
+        });
+}
+
+// Función para editar pago
+function editarPago(pagoId) {
+    if (pagoId) {
+        window.location.href = `/pagos/editar/${pagoId}`;
+    }
+}
+
+// Función para enviar recibo por correo
+function enviarRecibo(pagoId, email, nombreCliente) {
+    // Validar que el cliente tenga correo electrónico
+    if (!email || email.trim() === '') {
+        showToast('Error: El cliente no tiene correo electrónico registrado. No se puede enviar el recibo.', 'error');
+        return;
+    }
+    
+    if (confirm(`¿Está seguro de que desea enviar el recibo de pago a ${nombreCliente} (${email})?`)) {
+        // Mostrar loading en el botón
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        
+        // Obtener datos del pago desde la fila de la tabla
+        const row = button.closest('tr');
+        const montoPagado = row.querySelector('td:nth-child(4)').textContent.trim(); // Monto Pagado
+        const tipoPago = row.querySelector('td:nth-child(5)').textContent.trim(); // Tipo
+        const fechaPago = row.querySelector('td:nth-child(6)').textContent.trim(); // Fecha
+        
+        // Preparar datos para el envío usando la API que funciona
+        const datosPago = {
+            cliente_email: email,
+            cliente_nombre: nombreCliente,
+            datos_pago: {
+                pago_id: pagoId,
+                monto_pagado: parseFloat(montoPagado.replace('RD$', '').replace(',', '')),
+                tipo_pago: tipoPago,
+                fecha_pago: fechaPago,
+                // Datos en el formato que espera la función de Brevo
+                monto_capital: parseFloat(montoPagado.replace('RD$', '').replace(',', '')),
+                monto_interes: 0, // Por defecto, se puede ajustar según la lógica
+                numero_cuota: 1, // Por defecto
+                monto_cuota: parseFloat(montoPagado.replace('RD$', '').replace(',', '')),
+                id_prestamo: 1, // Por defecto, se puede obtener de la base de datos
+                monto_prestamo: parseFloat(montoPagado.replace('RD$', '').replace(',', '')),
+                plazo_prestamo: 12, // Por defecto
+                tasa_interes: 2.5, // Por defecto
+                // Campos adicionales que espera el HTML de Brevo
+                prestamo_id: 1, // Mapear id_prestamo a prestamo_id
+                cuota_numero: 1, // Mapear numero_cuota a cuota_numero
+                monto_total: parseFloat(montoPagado.replace('RD$', '').replace(',', '')) // Mapear monto_pagado a monto_total
+            }
+        };
+        
+        // Enviar recibo usando la API que funciona
+        fetch('/api/enviar-recibo-brevo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(datosPago)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showToast('Recibo enviado exitosamente', 'success');
+                // Recargar la página después de 2 segundos para mostrar el mensaje flash
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showToast('Error al enviar recibo: ' + (data.error || 'Error desconocido'), 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error al enviar recibo:', error);
+            showToast('Error al enviar recibo: ' + error.message, 'error');
+        })
+        .finally(() => {
+            // Restaurar botón
+            button.disabled = false;
+            button.innerHTML = originalContent;
+        });
+    }
+}
+
+// Función para imprimir comprobante
+function imprimirComprobante(pagoId) {
+    // Abrir en modal dentro de la aplicación
+    const modal = new bootstrap.Modal(document.getElementById('imprimirModal'));
+    document.getElementById('imprimirModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Cargando recibo para impresión...</p>
+        </div>
+    `;
+    modal.show();
+    
+    // Cargar el contenido del recibo en el modal
+    fetch(`/pagos/${pagoId}/imprimir`)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('imprimirModalBody').innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error al cargar recibo:', error);
+            document.getElementById('imprimirModalBody').innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <p>Error al cargar el recibo para impresión</p>
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            `;
+        });
+}
+
+// Función para descargar PDF
+function descargarPDF(pagoId) {
+    window.location.href = `/pagos/${pagoId}/descargar-pdf`;
+}
+
+// Función para eliminar pago
+function eliminarPago(pagoId, monto) {
+    if (confirm(`¿Está seguro de que desea eliminar este pago?\n\nMonto: RD$ ${monto}\n\nEsta acción revertirá el estado de la cuota asociada.\n\n⚠️ Esta acción NO se puede deshacer.`)) {
+        // Crear un formulario temporal para enviar la solicitud DELETE
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/pagos/${pagoId}/eliminar`;
+        
+        // Agregar el formulario al DOM y enviarlo
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Exportar pagos
+document.getElementById('exportBtn').addEventListener('click', function() {
+    alert('Función de exportación en desarrollo');
+});
+
+// Actualizar datos
+document.getElementById('refreshBtn').addEventListener('click', function() {
+    location.reload();
+});
+
+// Función para mostrar toast de notificación
+function showToast(message, type = 'info') {
+    // Crear toast si no existe
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toastId = 'toast-' + Date.now();
+    const toastHtml = `
+        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header ${type === 'success' ? 'bg-success text-white' : type === 'error' ? 'bg-danger text-white' : 'bg-info text-white'}">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'} me-2"></i>
+                <strong class="me-auto">Notificación</strong>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    const toastElement = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (toastElement && toastElement.parentNode) {
+            toastElement.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

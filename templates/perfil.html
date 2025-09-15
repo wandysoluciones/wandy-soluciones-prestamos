@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Mi Perfil</h1>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row">
+        <!-- Información del Perfil -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información Personal</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('perfil') }}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre *</label>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" value="{{ current_user.nombre }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="apellidos" class="form-label">Apellidos *</label>
+                                    <input type="text" class="form-control" id="apellidos" name="apellidos" value="{{ current_user.apellidos }}" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="cargo" class="form-label">Cargo *</label>
+                                    <input type="text" class="form-control" id="cargo" name="cargo" value="{{ current_user.cargo }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Rol del Sistema</label>
+                                    <div class="form-control-plaintext">
+                                        <span class="badge badge-{{ 'primary' if current_user.rol == 'admin' else 'secondary' }}">
+                                            {{ current_user.rol|title }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Nombre de Usuario</label>
+                                    <div class="form-control-plaintext">{{ current_user.username }}</div>
+                                    <div class="form-text">El nombre de usuario no se puede cambiar.</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Estado de la Cuenta</label>
+                                    <div class="form-control-plaintext">
+                                        <span class="badge badge-{{ 'success' if current_user.activo else 'danger' }}">
+                                            {{ 'Activo' if current_user.activo else 'Inactivo' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Cambio de Contraseña -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Cambiar Contraseña</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('cambiar_password') }}">
+                        <div class="mb-3">
+                            <label for="password_actual" class="form-label">Contraseña Actual *</label>
+                            <input type="password" class="form-control" id="password_actual" name="password_actual" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_nueva" class="form-label">Nueva Contraseña *</label>
+                            <input type="password" class="form-control" id="password_nueva" name="password_nueva" required>
+                            <div class="form-text">Mínimo 6 caracteres.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password_confirmar" class="form-label">Confirmar Nueva Contraseña *</label>
+                            <input type="password" class="form-control" id="password_confirmar" name="password_confirmar" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-key"></i> Cambiar Contraseña
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información del Sistema -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Información del Sistema</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ID del Usuario:</label>
+                        <div class="form-control-plaintext">{{ current_user.id }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Fecha de Creación:</label>
+                        <div class="form-control-plaintext">{{ current_user.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</div>
+                    </div>
+
+                    {% if current_user.ultimo_acceso %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Último Acceso:</label>
+                        <div class="form-control-plaintext">{{ current_user.ultimo_acceso.strftime('%d/%m/%Y %H:%M') }}</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Permisos:</label>
+                        <div class="form-control-plaintext">
+                            {% if current_user.rol == 'admin' %}
+                                <span class="text-success">
+                                    <i class="fas fa-check-circle"></i> Acceso completo al sistema
+                                </span>
+                            {% else %}
+                                <span class="text-info">
+                                    <i class="fas fa-user"></i> Acceso básico al sistema
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Validación del formulario de cambio de contraseña
+    $('form[action="{{ url_for("cambiar_password") }}"]').on('submit', function(e) {
+        const passwordActual = $('#password_actual').val();
+        const passwordNueva = $('#password_nueva').val();
+        const passwordConfirmar = $('#password_confirmar').val();
+
+        if (passwordNueva.length < 6) {
+            e.preventDefault();
+            alert('La nueva contraseña debe tener al menos 6 caracteres.');
+            $('#password_nueva').focus();
+            return false;
+        }
+
+        if (passwordNueva !== passwordConfirmar) {
+            e.preventDefault();
+            alert('Las contraseñas nuevas no coinciden.');
+            $('#password_confirmar').focus();
+            return false;
+        }
+
+        if (passwordActual === passwordNueva) {
+            e.preventDefault();
+            alert('La nueva contraseña debe ser diferente a la actual.');
+            $('#password_nueva').focus();
+            return false;
+        }
+    });
+
+    // Validación del formulario de perfil
+    $('form[action="{{ url_for("perfil") }}"]').on('submit', function(e) {
+        const nombre = $('#nombre').val().trim();
+        const apellidos = $('#apellidos').val().trim();
+        const cargo = $('#cargo').val().trim();
+
+        if (nombre.length < 2) {
+            e.preventDefault();
+            alert('El nombre debe tener al menos 2 caracteres.');
+            $('#nombre').focus();
+            return false;
+        }
+
+        if (apellidos.length < 2) {
+            e.preventDefault();
+            alert('Los apellidos deben tener al menos 2 caracteres.');
+            $('#apellidos').focus();
+            return false;
+        }
+
+        if (cargo.length < 2) {
+            e.preventDefault();
+            alert('El cargo debe tener al menos 2 caracteres.');
+            $('#cargo').focus();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrato de Préstamo</title>
+    <style>
+        body {
+            font-family: "Times New Roman", serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            margin: 2cm;
+            text-align: justify;
+        }
+        .titulo {
+            font-size: 18pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+        .clausula {
+            margin-bottom: 20px;
+        }
+        .clausula-titulo {
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .firmas {
+            margin-top: 50px;
+            text-align: center;
+        }
+        .firma-linea {
+            border-top: 1px solid black;
+            margin-top: 40px;
+            padding-top: 8px;
+            width: 200px;
+            display: inline-block;
+        }
+        .cuadro-bueno-valido {
+            border: 2px solid black;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+            background-color: #f9f9f9;
+            font-weight: bold;
+            font-size: 14pt;
+        }
+        .datos-destacados {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        .espacio-firma {
+            height: 60px;
+        }
+        .pagina {
+            page-break-after: always;
+        }
+        .ultima-pagina {
+            page-break-after: avoid;
+        }
+    </style>
+</head>
+<body>
+    <div class="pagina">
+        <div class="titulo">CONTRATO DE PRÉSTAMO</div>
+        
+        <p>Conste por el presente documento el contrato de préstamo de dinero que celebran, de una parte, <span class="datos-destacados">Wandy Paredes Castro</span>, con documento de identidad número <span class="datos-destacados">402-2871544-3</span>, con domicilio en <span class="datos-destacados">en la casa no. 77 la Piedra, Distrito Municipal La Bija</span>, en adelante denominado <span class="datos-destacados">EL PRESTAMISTA</span>; y de otra parte, <span class="datos-destacados">{{ cliente.nombre }} {{ cliente.apellidos }}</span>, con documento de identidad número <span class="datos-destacados">{{ cliente.documento }}</span>, con domicilio en <span class="datos-destacados">{{ cliente.direccion }}, {{ cliente.sector }}, {{ cliente.municipio }}, {{ cliente.provincia }}</span>, en adelante denominado <span class="datos-destacados">EL PRESTATARIO</span>, bajo los términos y condiciones siguientes:</p>
+        
+        <div class="titulo" style="font-size: 14pt; margin: 25px 0;">CLÁUSULAS</div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">PRIMERA: Objeto del contrato</div>
+            <p>EL PRESTAMISTA entrega en calidad de préstamo a EL PRESTATARIO la suma de <span class="datos-destacados">{{ monto_letras }}</span> (<span class="datos-destacados">{{ "%.2f"|format(prestamo.monto) }}</span> <span class="datos-destacados">pesos dominicanos</span>), la cual es recibida por EL PRESTATARIO en este acto.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">SEGUNDA: Plazo de devolución</div>
+            <p>EL PRESTATARIO se compromete a devolver el monto total del préstamo en un plazo de <span class="datos-destacados">{{ prestamo.plazo_meses }} meses</span>, contados a partir de la fecha de firma de este contrato.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">TERCERA: Intereses</div>
+            <p>El préstamo devengará un interés mensual del <span class="datos-destacados">{{ prestamo.tasa_interes }}%</span>, calculado sobre el saldo pendiente. Los intereses serán pagados <span class="datos-destacados">{{ prestamo.frecuencia.lower() }}</span>. En caso de mora, se aplicará un interés moratorio del <span class="datos-destacados">8%</span> anual sobre las cantidades adeudadas.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">CUARTA: Forma de pago</div>
+            <p>Los pagos se realizarán mediante <span class="datos-destacados">efectivo</span>. EL PRESTATARIO entregará el pago directamente a <span class="datos-destacados">EL PRESTATAMISTA</span>, quien emitirá un recibo por cada pago recibido.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">QUINTA: Garantías</div>
+            <p>Para garantizar el cumplimiento de las obligaciones derivadas de este contrato, <span class="datos-destacados">EL PRESTATARIO</span> ofrece en garantía <span class="datos-destacados">{% if prestamo.tipo_garantia %}{{ prestamo.descripcion_garantia }} ({{ prestamo.tipo_garantia }}){% else %}ninguna{% endif %}</span>. En caso de incumplimiento, <span class="datos-destacados">EL PRESTAMISTA</span> podrá ejecutar la garantía conforme a la ley.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">SEXTA: Incumplimiento</div>
+            <p>El incumplimiento de cualquiera de las obligaciones establecidas en este contrato facultará a <span class="datos-destacados">EL PRESTATARIO</span> a dar por vencido el plazo del préstamo y exigir el pago inmediato del capital, intereses y costos asociados, además de iniciar las acciones legales pertinentes.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">SÉPTIMA: Gastos y tributos</div>
+            <p>Todos los gastos notariales, registrales y tributarios derivados de este contrato serán asumidos por <span class="datos-destacados">EL PRESTATARIO</span>.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">OCTAVA: Jurisdicción y legislación aplicable</div>
+            <p>Las partes acuerdan que este contrato se regirá por las leyes de <span class="datos-destacados">la República Dominicana</span>. Cualquier controversia será resuelta en los tribunales de <span class="datos-destacados">Cotuí, República Dominicana</span>.</p>
+        </div>
+        
+        <div class="clausula">
+            <div class="clausula-titulo">NOVENA: Domicilio</div>
+            <p>Para efectos de notificaciones, las partes fijan sus domicilios en los indicados al inicio de este contrato.</p>
+        </div>
+        
+        <p>En señal de conformidad, las partes firman el presente contrato en dos ejemplares de igual valor, en la ciudad de <span class="datos-destacados">Cotuí</span>, a los <span class="datos-destacados">{{ dia }}</span> días del mes de <span class="datos-destacados">{{ mes }}</span> del año <span class="datos-destacados">{{ año }}</span>.</p>
+    </div>
+    
+    <div class="ultima-pagina">
+        <div class="cuadro-bueno-valido">
+            Escriba BUENO Y VALIDO POR LA SUMA DE<br>
+            <span style="font-size: 16pt; color: #333;">{{ monto_letras }} PESOS DOMINICANOS</span>
+        </div>
+        
+        <div class="firmas">
+            <div style="margin-bottom: 40px;">
+                <div class="firma-linea"></div>
+                <div><strong>EL PRESTAMISTA</strong></div>
+                <div><strong>Wandy Paredes Castro</strong></div>
+            </div>
+            
+            <div>
+                <div class="firma-linea"></div>
+                <div><strong>EL PRESTATARIO</strong></div>
+                <div><strong>{{ cliente.nombre }} {{ cliente.apellidos }}</strong></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
