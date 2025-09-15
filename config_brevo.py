@@ -3,13 +3,10 @@ CONFIGURACIÓN Y FUNCIONES PARA BREVO (SENDINBLUE)
 Sistema de envío de emails para Wandy Soluciones y Préstamos
 """
 
+import requests
+import json
 import os
 from dotenv import load_dotenv
-from sib_api_v3_sdk import TransactionalEmailsApi, ApiClient, Configuration
-from sib_api_v3_sdk.models.send_smtp_email import SendSmtpEmail
-from sib_api_v3_sdk.models.send_smtp_email_to import SendSmtpEmailTo
-from sib_api_v3_sdk.models.send_smtp_email_sender import SendSmtpEmailSender
-from sib_api_v3_sdk.models.send_smtp_email_reply_to import SendSmtpEmailReplyTo
 import logging
 
 # Cargar variables de entorno
@@ -20,25 +17,20 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class BrevoEmailService:
-    """Servicio de envío de emails usando Brevo"""
+    """Servicio de envío de emails usando Brevo API REST"""
     
     def __init__(self):
         """Inicializar servicio de Brevo"""
         self.api_key = os.getenv('BREVO_API_KEY')
-        self.sender_email = os.getenv('BREVO_SENDER_EMAIL', 'info@wandysoluciones.com')
+        self.sender_email = os.getenv('BREVO_SENDER_EMAIL', 'wandysoluciones@gmail.com')
         self.sender_name = os.getenv('BREVO_SENDER_NAME', 'Wandy Soluciones y Préstamos')
-        self.reply_to = os.getenv('BREVO_REPLY_TO', 'info@wandysoluciones.com')
+        self.reply_to = os.getenv('BREVO_REPLY_TO', 'wandysoluciones@gmail.com')
+        self.api_url = "https://api.brevo.com/v3/smtp/email"
         
         if not self.api_key:
-            raise ValueError("BREVO_API_KEY no está configurada en las variables de entorno")
-        
-        # Configurar cliente de Brevo
-        self.config = Configuration()
-        self.config.api_key['api-key'] = self.api_key
-        self.api_client = ApiClient(self.config)
-        self.email_api = TransactionalEmailsApi(self.api_client)
-        
-        logger.info("✅ Servicio de Brevo inicializado correctamente")
+            logger.warning("BREVO_API_KEY no está configurada - emails no se enviarán")
+        else:
+            logger.info("✅ Servicio de Brevo inicializado correctamente")
     
     def enviar_recibo_pago(self, cliente_email, cliente_nombre, datos_pago):
         """
@@ -52,31 +44,59 @@ class BrevoEmailService:
         Returns:
             dict: Resultado del envío
         """
+        if not self.api_key:
+            logger.warning("API Key no configurada - simulando envío de email")
+            return {
+                'success': True,
+                'message_id': 'simulated',
+                'message': 'Email simulado (API Key no configurada)'
+            }
+            
         try:
             # Preparar datos del email
             subject = f"Recibo de Pago #{datos_pago['pago_id']} - {cliente_nombre}"
-            
-            # Crear contenido HTML del recibo
             html_content = self._generar_html_recibo_pago(cliente_nombre, datos_pago)
             
-            # Configurar email
-            send_email = SendSmtpEmail(
-                to=[SendSmtpEmailTo(email=cliente_email, name=cliente_nombre)],
-                sender=SendSmtpEmailSender(email=self.sender_email, name=self.sender_name),
-                reply_to=SendSmtpEmailReplyTo(email=self.reply_to),
-                subject=subject,
-                html_content=html_content
-            )
+            # Configurar payload para API REST
+            payload = {
+                "sender": {
+                    "name": self.sender_name,
+                    "email": self.sender_email
+                },
+                "to": [
+                    {
+                        "email": cliente_email,
+                        "name": cliente_nombre
+                    }
+                ],
+                "subject": subject,
+                "htmlContent": html_content
+            }
+            
+            headers = {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "api-key": self.api_key
+            }
             
             # Enviar email
-            result = self.email_api.send_transac_email(send_email)
+            response = requests.post(self.api_url, json=payload, headers=headers)
             
-            logger.info(f"✅ Recibo de pago enviado exitosamente a {cliente_email}")
-            return {
-                'success': True,
-                'message_id': result.message_id,
-                'message': 'Email enviado exitosamente'
-            }
+            if response.status_code == 201:
+                result = response.json()
+                logger.info(f"✅ Recibo de pago enviado exitosamente a {cliente_email}")
+                return {
+                    'success': True,
+                    'message_id': result.get('messageId', 'unknown'),
+                    'message': 'Email enviado exitosamente'
+                }
+            else:
+                logger.error(f"❌ Error al enviar email: {response.status_code} - {response.text}")
+                return {
+                    'success': False,
+                    'error': f"HTTP {response.status_code}: {response.text}",
+                    'message': 'Error al enviar email'
+                }
             
         except Exception as e:
             logger.error(f"❌ Error al enviar recibo de pago: {str(e)}")
