@@ -6,17 +6,18 @@ from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
 from functools import wraps
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+# Importaciones de reportlab comentadas temporalmente para deployment
+# from reportlab.lib.pagesizes import letter, A4
+# from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image
+# from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+# from reportlab.lib.units import inch
+# from reportlab.lib import colors
+# from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 import io
 import tempfile
 import json
 from provincias_municipios_rd import obtener_provincias, obtener_municipios
-from config_brevo import enviar_recibo_pago_brevo, enviar_notificacion_atraso_brevo
+# from config_brevo import enviar_recibo_pago_brevo, enviar_notificacion_atraso_brevo
 
 # Cargar variables de entorno
 load_dotenv()
@@ -742,27 +743,9 @@ def eliminar_cliente(cliente_id):
 @app.route('/clientes/<int:cliente_id>/descargar-pdf')
 @login_required
 def descargar_cliente_pdf(cliente_id):
-    try:
-        cliente = Cliente.query.get_or_404(cliente_id)
-        prestamos = Prestamo.query.filter_by(cliente_id=cliente_id).all()
-        
-        # Generar PDF
-        pdf_buffer = generar_pdf_cliente(cliente, prestamos)
-        
-        # Enviar archivo para descarga
-        pdf_buffer.seek(0)
-        filename = f"cliente_{cliente.id}_{cliente.apellidos}_{datetime.now().strftime('%Y%m%d')}.pdf"
-        
-        return send_file(
-            pdf_buffer,
-            as_attachment=True,
-            download_name=filename,
-            mimetype='application/pdf'
-        )
-        
-    except Exception as e:
-        flash(f'Error al generar PDF: {str(e)}', 'error')
-        return redirect(url_for('ver_cliente', cliente_id=cliente_id))
+    # Funcionalidad PDF temporalmente deshabilitada para deployment
+    flash('Funcionalidad PDF temporalmente no disponible', 'info')
+    return redirect(url_for('ver_cliente', cliente_id=cliente_id))
 
 @app.route('/clientes/buscar')
 @login_required
